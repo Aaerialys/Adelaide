@@ -1,0 +1,7 @@
+package bot;
+
+public class DmojQueue {
+	final int SIZE=100;
+	int start,end;
+	long[] queue=new long[SIZE];
+}

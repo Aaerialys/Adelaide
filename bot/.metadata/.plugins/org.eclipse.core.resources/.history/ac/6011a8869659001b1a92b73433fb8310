@@ -1,0 +1,31 @@
+package bot;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+
+public class GlobalProblem extends Problem{
+	int score;
+	HashMap<Long,Integer> userVotes = new HashMap<Long,Integer>();
+	ArrayList<String> comments = new ArrayList<String>();
+	public GlobalProblem(String link) {
+		super(link);
+		score=0;
+	}
+	public bool addVote(Long user,int newVote) {
+		if(!userVotes.containsKey(user)) userVotes.put(user, 0);
+		if(userVotes.get(user).equals(newVote)) return false;
+		score+=newVote;
+		userVotes.put(user,userVotes.get(user)+newVote);
+		return true;
+	}
+	public void addComment(String newComment) {
+		comments.add(newComment);
+	}
+	public int getScore() {
+		return score;
+	}
+	public ArrayList<String> getComments(){
+		return comments;
+	}
+	
+}

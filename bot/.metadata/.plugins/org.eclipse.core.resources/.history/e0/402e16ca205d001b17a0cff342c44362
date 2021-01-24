@@ -1,0 +1,81 @@
+package bot;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.Date;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
+public class DmojCfApi {//connects to the dmoj and codeforces api and caches all available problems
+	private static final int DMOJLIMIT=90,DMOJTIME=60000;//dmoj api calls are limited to 90 calls/60000m(1 minute)
+	private static DmojQueue dmojPrev=new DmojQueue();//a queue of previous api calls
+    private static JSONArray dmojProblemCache, cfProblemCache;
+    public static JSONObject query(String str) throws IOException, ParseException, InterruptedException {
+    	if(str.contains("dmoj.")) {
+	    	while(dmojPrev.size()>=DMOJLIMIT) {
+	    		if(dmojPrev.front()>=new Date().getTime()-DMOJTIME) {
+					Thread.sleep(dmojPrev.front()-(new Date().getTime()-DMOJTIME));
+	    		}
+	    		dmojPrev.pop();
+	    	}
+	    	long time=new Date().getTime();
+	    	dmojPrev.push(time);
+    	}
+        URL url = new URL(str);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        JSONParser parse = new JSONParser();
+        InputStream stream = conn.getInputStream();
+        return (JSONObject) parse.parse(new InputStreamReader(stream));
+    }
+    public static void updateCache() {
+        try {
+            JSONObject temp;
+            dmojProblemCache = new JSONArray();
+            int page = 1;
+            do {
+                temp = (JSONObject) query("https://dmoj.ca/api/v2/problems?page=" + page).get("data");
+                dmojProblemCache.addAll((JSONArray)(temp).get("objects"));
+                System.out.println("loading cache " + page + "/5");
+                page++;
+            } while ((boolean) temp.get("has_more"));
+            cfProblemCache = (JSONArray)((JSONObject) query("https://codeforces.com/api/problemset.problems").get("result")).get("problems");
+        } catch (Exception e) {
+        	System.err.println("API error while updating cache");
+            e.printStackTrace();
+        }
+    }
+    public static JSONArray getDmojProblems() {
+        return dmojProblemCache;
+    }
+    public static JSONArray getCfProblems() {
+        return cfProblemCache;
+    }
+    public static JSONObject dmojProblemInfo(String problem) {
+        int binarySearch = 1, pos = -1;
+        while (binarySearch <= dmojProblemCache.size()) binarySearch *= 2;
+        for (; binarySearch > 0; binarySearch /= 2) {
+            if (pos + binarySearch >= dmojProblemCache.size()) continue;
+            int cmp = problem.compareTo((String)((JSONObject) dmojProblemCache.get(pos + binarySearch)).get("code"));
+            if (cmp == 0) return (JSONObject)((JSONObject) dmojProblemCache.get(pos + binarySearch));
+            if (cmp > 0) pos += binarySearch;
+        }
+        return null;
+    }
+    public static JSONObject cfProblemInfo(int contest, String problem) {
+        int binarySearch = 1, pos = -1;
+        while (binarySearch <= cfProblemCache.size()) binarySearch *= 2;
+        for (; binarySearch > 0; binarySearch /= 2) {
+            if (pos + binarySearch >= cfProblemCache.size()) continue;
+            int cmp = problem.compareTo((String)((JSONObject) cfProblemCache.get(pos + binarySearch)).get("index"));
+            Long id = (Long)((JSONObject) cfProblemCache.get(pos + binarySearch)).get("contestId");
+            if (cmp == 0 && contest == id) return (JSONObject)((JSONObject) cfProblemCache.get(pos + binarySearch));
+            if (contest < id || id == contest && cmp < 0) pos += binarySearch;
+        }
+        return null;
+    }
+}

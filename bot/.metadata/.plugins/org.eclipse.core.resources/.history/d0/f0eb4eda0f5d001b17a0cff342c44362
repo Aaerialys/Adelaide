@@ -1,0 +1,5 @@
+package bot;
+
+public class ApiQueue {
+	final int SIZE=60;
+}

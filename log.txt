@@ -1,0 +1,10 @@
+2021-01-23 16:12:28.659-0500 INFO org.javacord.core.util.logging.ExceptionLoggerDelegateImpl No Log4j2 compatible logger was found. Using default Javacord implementation!
+data restored
+loading cache 1/5
+loading cache 2/5
+loading cache 3/5
+loading cache 4/5
+Bot started
+2021-01-23 16:45:43.766-0500 INFO org.javacord.core.util.gateway.DiscordWebSocketAdapter Websocket closed with reason 'unknown' and code NORMAL (1000) by server! {shard=0} 
+2021-01-23 16:45:43.769-0500 INFO org.javacord.core.util.gateway.DiscordWebSocketAdapter Trying to reconnect/resume in 1 seconds! {shard=0} 
+2021-01-23 16:45:44.961-0500 INFO org.javacord.core.util.gateway.DiscordWebSocketAdapter Could not resume session. Reconnecting in 1.2 seconds... {shard=0} 

@@ -1,0 +1,19 @@
+package bot;
+
+public class DmojQueue {
+	final int SIZE=100;
+	int start,end;
+	long[] queue=new long[SIZE];
+	void push(long newVal) {
+		end++;
+		if(end==SIZE) end=0;
+		if(end==start) throw new RuntimeException();
+		queue[end]=newVal;
+	}
+	long pop() {
+		long val=queue[end];
+		end--;
+		if(end==-1) end=SIZE-1;
+		return val;
+	}
+}

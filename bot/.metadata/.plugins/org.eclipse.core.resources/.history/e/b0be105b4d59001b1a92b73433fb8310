@@ -1,0 +1,13 @@
+package bot;
+
+import java.util.HashMap;
+import java.util.TreeSet;
+
+public class GlobalProblem extends Problem{
+	TreeSet<Integer> qualityVotes = new TreeSet<Integer>(),difficultyVotes = new TreeSet<Integer>();
+	HashMap<Long,String> reviews = new HashMap<Long,String>();
+	GlobalProblem(String Link){
+		super(Link);
+	}
+	
+}

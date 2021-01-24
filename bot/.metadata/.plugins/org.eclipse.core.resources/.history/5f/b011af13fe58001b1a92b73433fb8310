@@ -1,0 +1,15 @@
+package bot;
+
+public class UserProblem extends Problem{
+	String status;
+	public UserProblem(String link,String status){
+		super(link);
+		this.status=status;
+	}
+	void setStatus(String status) {
+		this.status=status;
+	}
+	public String toString() {
+		return super.toString()+" ["+status+"]";
+	}
+}
