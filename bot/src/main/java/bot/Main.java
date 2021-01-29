@@ -28,7 +28,8 @@ public class Main {
     public static void main(String[] args) {
         Scanner sc=new Scanner(System.in);
         System.out.println("Enter discord token:");//prompts for discord token to connect to discord
-        String token=sc.next();
+        String token=System.getenv("token");// sc.next();
+        sc.close();
         DiscordApi api = new DiscordApiBuilder().setToken(token) //connects bot to discord api
             .setAllIntentsExcept(Intent.GUILD_PRESENCES).login().join();
         bot = new BotListener(api); //creates new message listener and adds it to the current bot
@@ -37,7 +38,6 @@ public class Main {
         timer.schedule(new Save(), 0, 60000);//1 minute
         timer.schedule(new Update1(), 0, 3600000);//1 hour
         timer.schedule(new Update2(), 0, 604800000);//1 week
-        sc.close();
         api.getOwner().join().sendMessage("Starting the bot"); //sends startup message
         System.out.println("Bot started");
     }
