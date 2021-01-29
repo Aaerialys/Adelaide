@@ -1,1 +1,1 @@
-worker: java -jar adelaide.jar
+worker: java -jar target/adelaide.jar
