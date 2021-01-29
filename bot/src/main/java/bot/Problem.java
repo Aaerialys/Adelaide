@@ -2,6 +2,9 @@ package bot;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+
 import org.json.simple.JSONObject;
 
 public class Problem implements Comparable < Problem > , Serializable { //contains information about a problem
@@ -43,9 +46,32 @@ public class Problem implements Comparable < Problem > , Serializable { //contai
             3800
         }
     };
-    private String link, platform, title; //the link, platform, and title of the problem
+    private String link, platform, title,code; //the link, platform, and title of the problem
     private int difficulty; //the difficulty of the problem, in terms of points for dmoj problems and rating for codeforces problems
-    
+    HashSet<String> tags;
+    public Problem(JSONObject info,String p) {
+    	platform=p;
+    	if(info==null) return;
+    	if(platform.equals("dmoj")) {
+    		code=(String) info.get("code");
+    		link="https://dmoj.ca/problem/"+code;
+    		title=(String) info.get("name");
+    		tags=new HashSet<String>();
+    		Collection<String> temp=(Collection<String>) info.get("types");
+    		for(String cur:temp) tags.add(cur.toLowerCase());
+    		difficulty=((Double) info.get("points")).intValue();
+    	}
+    	else if(platform.equals("codeforces")) {
+    		code=info.get("contestId")+(String)info.get("index");
+    		for(int contest=((Long) info.get("contestId")).intValue();contest<10000;contest*=10) code="-"+code;
+    		link="https://codeforces.com/problemset/problem/"+info.get("contestId")+"/"+info.get("index");
+    		title=(String) info.get("name");
+    		tags=new HashSet<String>();
+    		Collection<String> temp=(Collection<String>) info.get("tags");
+    		for(String cur:temp) tags.add(cur.toLowerCase());
+    		if(info.containsKey("rating")) difficulty=((Long) info.get("rating")).intValue();
+    	}
+    }
     public Problem(String link) { //constructs a new problem from its link
         this.link = new String(link);
         difficulty = 0; //initializes the difficulty as 0
@@ -55,10 +81,10 @@ public class Problem implements Comparable < Problem > , Serializable { //contai
             try {
                 int contest = Integer.parseInt(link.substring(0, link.lastIndexOf('/')).replaceAll("[^\\d]", "")); //gets the problem's contest from the link
                 String index = link.substring(link.lastIndexOf('/') + 1); //gets the problem's index from the link
-                JSONObject info = DmojCfApi.cfProblemInfo(contest, index); //gets problem info from codeforces
+                Problem info = DmojCfApi.cfProblemInfo(contest, index); //gets problem info from codeforces
                 if (info == null) return; //if the problem was not found in the cache, exit
-                title = (String) info.get("name"); //set the problem title
-                if (info.containsKey("rating")) difficulty = ((Long) info.get("rating")).intValue(); //set the problem rating if it exists
+                title = (String) info.getTitle(); //set the problem title
+                difficulty = info.getDifficulty(); //set the problem rating if it exists
             } catch (Exception e) { //if there was an error parsing or accessing the link on codeforces, exit
                 System.err.println("Problem could not be found on codeforces: " + link);
                 e.printStackTrace();
@@ -66,10 +92,10 @@ public class Problem implements Comparable < Problem > , Serializable { //contai
         } else if (link.contains("dmoj.")) { //if the link is from dmoj
             platform = "dmoj";
             try {
-                JSONObject info = DmojCfApi.dmojProblemInfo(link.substring(link.lastIndexOf('/') + 1)); //get problem info from dmoj
+                Problem info = DmojCfApi.dmojProblemInfo(link.substring(link.lastIndexOf('/') + 1)); //get problem info from dmoj
                 if (info == null) return; //if the problem was not found, exit
-                title = (String) info.get("name"); //set the problem's name
-                difficulty = ((Double) info.get("points")).intValue(); //sets the problem's point value
+                title = (String) info.getTitle(); //set the problem's name
+                difficulty = info.getDifficulty(); //sets the problem's point value
             } catch (Exception e) { //if the problem could not be parsed or accessed on dmoj, exit
                 System.err.println("Problem could not be found on dmoj" + link);
                 e.printStackTrace();
@@ -80,11 +106,21 @@ public class Problem implements Comparable < Problem > , Serializable { //contai
     public String getLink() {
         return link;
     }
+    public String getTitle() {
+    	return title;
+    }
     public String getPlatform() {
         return platform;
     }
+    public String getCode() {
+    	return code;
+    }
     public int getDifficulty() {
         return difficulty;
+    }
+    public boolean containsTag(String tag) {
+    	if(code.equals("2dperm")) for(String cur:tags) System.out.println(cur);
+    	return tags.contains(tag);
     }
     
     public static int dmojToCf(int val) { //converts a dmoj point value to a codeforces rating difficulty by binary searching on the values table

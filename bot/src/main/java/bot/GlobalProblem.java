@@ -22,9 +22,15 @@ public class GlobalProblem extends Problem { //stores a problem with votes and c
         userVotes.put(user, userVotes.get(user) + newVote); //adds the new vote to the user's previous vote
         return true; //the vote was successful, so return true
     }
+    public void setScore(int newScore) {
+    	score=newScore;
+    }
     
     public void addComment(String newComment) { //adds a new comment to the comment list
         comments.add(newComment);
+    }
+    public void deleteComment(int index) {
+    	comments.remove(index);
     }
     
     public int getScore() { //gets the score of the problem

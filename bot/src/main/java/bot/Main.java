@@ -7,13 +7,23 @@ import java.util.TimerTask;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.DiscordApiBuilder;
 import org.javacord.api.entity.intent.Intent;
+import org.javacord.api.util.cache.MessageCache;
 
 public class Main {
     private static BotListener bot;
-    private final static int SAVEFREQUENCY = 120000; //frequency to save information, in milliseconds (every 2 minutes)
-    private static class SaveState extends TimerTask { //saves information on the bot
+    private static class Save extends TimerTask { //saves information on the bot
         public void run() {
             bot.save();
+        }
+    }
+    private static class Update1 extends TimerTask {
+        public void run() {
+            bot.update1();
+        }
+    }
+    private static class Update2 extends TimerTask {
+        public void run() {
+            bot.update2();
         }
     }
     public static void main(String[] args) {
@@ -24,11 +34,12 @@ public class Main {
             .setAllIntentsExcept(Intent.GUILD_PRESENCES).login().join();
         bot = new BotListener(api); //creates new message listener and adds it to the current bot
         api.addListener(bot);
-        DmojCfApi.updateCache(); //updates the cache of dmoj and codeforces problems
+        Timer timer = new Timer(); //sets a timer to save bot data automatically
+        timer.schedule(new Save(), 0, 60000);//1 minute
+        timer.schedule(new Update1(), 0, 3600000);//1 hour
+        timer.schedule(new Update2(), 0, 604800000);//1 week
+        sc.close();
         api.getOwner().join().sendMessage("Starting the bot"); //sends startup message
         System.out.println("Bot started");
-        Timer timer = new Timer(); //sets a timer to save bot data automatically
-        timer.schedule(new SaveState(), 0, SAVEFREQUENCY);
-        sc.close();
     }
 }

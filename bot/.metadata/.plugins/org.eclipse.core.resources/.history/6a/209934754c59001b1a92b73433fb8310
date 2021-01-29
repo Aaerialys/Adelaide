@@ -1,5 +1,0 @@
-package bot;
-
-public class GlobalProblem extends Problem{
-	TreeSet<Integer> quality,difficulty;
-}
