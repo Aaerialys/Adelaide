@@ -32,15 +32,12 @@ import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.entity.permission.Role;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.event.message.MessageCreateEvent;
-import org.javacord.api.exception.BadRequestException;
 import org.javacord.api.listener.message.MessageCreateListener;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.nodes.FormElement;
 
 public class BotListener implements MessageCreateListener { //this class receives messages and responds to commands from users
     private final int MAXLENGTH = 1990; //max message length on discord
@@ -753,7 +750,7 @@ public class BotListener implements MessageCreateListener { //this class receive
         	try {
 				ArrayList<JSONObject> temp2=(ArrayList<JSONObject>) ((JSONObject) ((JSONObject) DmojCfApi.query("https://dmoj.ca/api/v2/contest/"+input[1]).get("data")).get("object")).get("rankings");
         		int n=temp2.size()+1,cnt=0;
-				int[] old=new int[n],vol=new int[n],ex=new int[n],perf=new int[n+1],change=new int[n+1];
+				int[] old=new int[n],vol=new int[n],perf=new int[n+1],change=new int[n+1];
 				try {
 					Map<String,JSONObject> temp=(Map<String, JSONObject>) DmojCfApi.query("https://evanzhang.ca/rating/contest/"+input[1]+"/api").get("users");
 					for(JSONObject cur:temp.values()) {
@@ -767,16 +764,17 @@ public class BotListener implements MessageCreateListener { //this class receive
 						if(cur.get("rating_change")!=null)
 							change[cnt]=((Long)cur.get("rating_change")).intValue();
 					}
+					for(int i=1;i<n;i++) if(vol[i]==0) old[i]=vol[i]=-1000;
 					double a;
-					int b=-1000;
 					for(int rating=-999;rating<=5000;rating++) {
 						a=0;
 						for(int i=1;i<n;i++) if(old[i]!=-1000) a+=erf((old[i]-rating)/Math.sqrt(2)/vol[i]);
 						perf[(int) Math.ceil(a+0.5)]=rating;
 						if(rating==-999) cnt=(int) Math.ceil(a+0.5);
 					}
-					for(int i=n;i>0;i--) {
-						if(i==n||old[i-1]==-1000) perf[i]=b; 
+					int b=perf[cnt--];
+					for(int i=n-1;i>0;i--) {
+						if(old[i]==-1000) perf[i]=b; 
 						else perf[i]=b=perf[cnt--];
 					}
 				} catch(Exception e) {

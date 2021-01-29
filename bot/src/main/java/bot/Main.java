@@ -7,7 +7,6 @@ import java.util.TimerTask;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.DiscordApiBuilder;
 import org.javacord.api.entity.intent.Intent;
-import org.javacord.api.util.cache.MessageCache;
 
 public class Main {
     private static BotListener bot;
