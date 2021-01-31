@@ -20,4 +20,11 @@
 		<nature>org.eclipse.jdt.core.javanature</nature>
 		<nature>org.eclipse.m2e.core.maven2Nature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>bot</name>
+			<type>2</type>
+			<location>C:/Users/victo/eclipse-workspace/bot/src/main/java/bot</location>
+		</link>
+	</linkedResources>
 </projectDescription>
