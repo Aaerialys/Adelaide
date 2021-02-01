@@ -27,7 +27,6 @@ public class Main {
         api.addListener(bot);
         Timer timer = new Timer(); //sets a timer to save bot data automatically
         timer.schedule(new Update(), 0, 3600000);//1 hour
-        api.getOwner().join().sendMessage("Starting the bot"); //sends startup message
         System.out.println("Bot started");
     }
 }
