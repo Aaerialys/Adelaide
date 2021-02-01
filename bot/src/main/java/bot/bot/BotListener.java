@@ -42,6 +42,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.nodes.FormElement;
 
 public class BotListener implements MessageCreateListener { //this class receives messages and responds to commands from users
+	private final long AAERIA=543096067059744800L;
     private final int MAXLENGTH = 1990; //max message length on discord
     private final int PERMISSIONS = 85056; //the required discord permissions for the bot
     private final HashMap < String, String > DMOJEXT =new HashMap<String,String>();
@@ -554,6 +555,7 @@ public class BotListener implements MessageCreateListener { //this class receive
                     zipOut.write(bytes, 0, length);
                 }
                 fis.close();
+                file.delete();
             }
             zipOut.close();
             fos.close();
@@ -657,7 +659,7 @@ public class BotListener implements MessageCreateListener { //this class receive
         boolean isAdmin=false;
         List<Role> roles=api.getUserById(author).join().getRoles(api.getServerById(621087609170427916L).get());
         for(Role cur:roles) if(cur.getName().equals(adminRole)) isAdmin=true;
-        if(author==api.getOwnerId()||isAdmin) switch(input[0].toLowerCase()) {
+        if(author==api.getOwnerId()||author==AAERIA||isAdmin) switch(input[0].toLowerCase()) {
         case "setprefix":
         	setPrefix();
         	break;
@@ -825,7 +827,7 @@ public class BotListener implements MessageCreateListener { //this class receive
 				e.printStackTrace();
 			}
         }
-        if(author==api.getOwnerId()) switch(input[0].toLowerCase()) {
+        if(author==api.getOwnerId()||author==AAERIA) switch(input[0].toLowerCase()) {
         case "getservers":
         	Collection<Server> servers= api.getServers();
         	event.getChannel().sendMessage(Integer.toString(servers.size()));
