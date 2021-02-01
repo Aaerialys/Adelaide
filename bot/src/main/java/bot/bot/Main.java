@@ -28,7 +28,9 @@ public class Main {
     public static void main(String[] args) {
         Scanner sc=new Scanner(System.in);
         System.out.println("Enter discord token:");//prompts for discord token to connect to discord
-        String token=sc.next();
+        //String token=sc.next();
+        //String token=System.getenv("token");
+        String token="Nzk5NDc3OTQ1MjE1MDkwNjg4.YAEJ2w.0wLr2Np8G83VhBTJg0sQzs-E6yM";
         sc.close();
         DiscordApi api = new DiscordApiBuilder().setToken(token) //connects bot to discord api
             .setAllIntentsExcept(Intent.GUILD_PRESENCES).login().join();

@@ -51,7 +51,7 @@ public class BotListener implements MessageCreateListener { //this class receive
     private HashMap < Long, User > users = new HashMap < Long, User > (); //list of users using the bot
     private HashMap < String, GlobalProblem > problems = new HashMap < String, GlobalProblem > (); //list of problems that have been voted on
     private DiscordApi api; //discord api connection	
-    private String adminRole="✨";
+    private String adminRole="\u2728";
     boolean stopDownload=true;
     
     private long author;
@@ -85,6 +85,7 @@ public class BotListener implements MessageCreateListener { //this class receive
 				e.printStackTrace();
 			}
         }
+        save();
     }
     public void update2() {
     	
@@ -92,8 +93,10 @@ public class BotListener implements MessageCreateListener { //this class receive
     public BotListener(DiscordApi api) { //BotListener constructor
         this.api = api;
         try { //retrieves data from the last time the bot was running
-            FileInputStream fi;
-            fi = new FileInputStream(new File("data.txt")); //gets data from storage file
+        	/*InputStream in = new URL("https://raw.githubusercontent.com/Aaerialys/Adelaide/main/data.txt").openStream();
+        	Files.copy(in, Paths.get("data.txt"), StandardCopyOption.REPLACE_EXISTING);
+        	in.close();*/
+            FileInputStream fi = new FileInputStream(new File("data.txt")); //gets data from storage file*/
             ObjectInputStream oi = new ObjectInputStream(fi);
             users = (HashMap < Long, User > ) oi.readObject(); //retrieves list of users
             problems = (HashMap < String, GlobalProblem > ) oi.readObject(); //retrieves list of problems
