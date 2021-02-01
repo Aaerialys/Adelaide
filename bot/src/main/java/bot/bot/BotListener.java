@@ -87,9 +87,6 @@ public class BotListener implements MessageCreateListener { //this class receive
         }
         save();
     }
-    public void update2() {
-    	
-    }
     public BotListener(DiscordApi api) { //BotListener constructor
         this.api = api;
         try { //retrieves data from the last time the bot was running
