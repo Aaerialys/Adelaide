@@ -35,6 +35,7 @@ public class DmojCfApi { //connects to the dmoj and codeforces api and caches al
         }
         URL url = new URL(str); //converts the link from string to url object
         HttpsURLConnection conn = (HttpsURLConnection) url.openConnection(); //connects to url
+        conn.setRequestProperty("User-Agent","Mozilla/5.0 (Windows NT 5.1; rv:19.0) Gecko/20100101 Firefox/19.0");
         JSONParser parse = new JSONParser();
         InputStream stream = conn.getInputStream(); //gets api data to input stream
         return (JSONObject) parse.parse(new InputStreamReader(stream)); //parses stream as a json object and returns it
