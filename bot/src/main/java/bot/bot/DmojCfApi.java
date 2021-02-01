@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.stream.Collectors;
 
+import javax.net.ssl.HttpsURLConnection;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -32,7 +34,7 @@ public class DmojCfApi { //connects to the dmoj and codeforces api and caches al
             dmojPrev.push(time);
         }
         URL url = new URL(str); //converts the link from string to url object
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection(); //connects to url
+        HttpsURLConnection conn = (HttpsURLConnection) url.openConnection(); //connects to url
         JSONParser parse = new JSONParser();
         InputStream stream = conn.getInputStream(); //gets api data to input stream
         return (JSONObject) parse.parse(new InputStreamReader(stream)); //parses stream as a json object and returns it
