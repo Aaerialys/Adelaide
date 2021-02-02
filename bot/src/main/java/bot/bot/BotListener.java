@@ -417,7 +417,7 @@ public class BotListener implements MessageCreateListener { //this class receive
                 temp = (JSONObject) DmojCfApi.query("https://dmoj.ca/api/v2/submissions?result=ac&user=" + input[1] + "&page=" + page).get("data"); //get each page of the user's data
                 subs.addAll((ArrayList < JSONObject > ) temp.get("objects")); //add that page into the submission list
                 page++; //go to next page
-            } while ((boolean) temp.get("has_more")); //while there are more pages in the data
+            } while (page<= ((Long)temp.get("total_pages")).intValue()); //while there are more pages in the data
             for (JSONObject cur: subs) //add each submission to the solved list and set if it has not been added already to the set
                 if (solved.add((String) cur.get("problem"))) problems.add(cur);
             String output = "";
@@ -525,7 +525,7 @@ public class BotListener implements MessageCreateListener { //this class receive
 	                temp = (JSONObject) DmojCfApi.query("https://"+input[1]+".ca/api/v2/submissions?result=ac&user=" + input[2] + "&page=" + page,"Authorization","Bearer "+input[3]).get("data"); //get each page of the user's data
 	                subs.addAll((ArrayList < JSONObject > ) temp.get("objects")); //add that page into the submission list
 	                page++; //go to next page
-	            } while ((boolean) temp.get("has_more")); //while there are more pages in the data
+	            } while (page<= ((Long)temp.get("total_pages")).intValue()); //while there are more pages in the data
 	            Collections.reverse(subs);
 	            for (JSONObject cur: subs) 
 	                if (solved.add((String) cur.get("problem"))) problems.add(cur);
