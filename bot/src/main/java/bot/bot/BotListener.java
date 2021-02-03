@@ -155,7 +155,7 @@ public class BotListener implements MessageCreateListener { //this class receive
     	HashSet<String> emotes=new HashSet<String>();
     	for(int prev=fullInput.indexOf(':',0),cur=fullInput.indexOf(':',prev+1),cnt=0; cur!=-1;prev=cur,cur=fullInput.indexOf(':',prev+1)) {
     		emotes.add(fullInput.substring(prev+1,cur));
-    		if(++cnt>=2) break;
+    		if(++cnt>=1) break;
     	}
 		ArrayList<KnownCustomEmoji> temp= new ArrayList<KnownCustomEmoji>(server.getCustomEmojis()),emoteS=new ArrayList<KnownCustomEmoji>(),emoteA=new ArrayList<KnownCustomEmoji>();
 		for(KnownCustomEmoji cur:temp) {
@@ -448,8 +448,8 @@ public class BotListener implements MessageCreateListener { //this class receive
     	if(!directory.exists()) directory.mkdir();
     	File[] files = directory.listFiles();
     	for(File f:files) f.delete();
+    	TextChannel curChannel=event.getChannel(); 
         try {
-        	TextChannel curChannel=event.getChannel(); 
         	Message message=curChannel.sendMessage("Downloading "+input[1]+" submissions for "+input[2]).join();
         	if(input[1].equals("codeforces")) {
         		Map<String,String> cookie=null;
@@ -530,7 +530,7 @@ public class BotListener implements MessageCreateListener { //this class receive
 	            for (JSONObject cur: subs) 
 	                if (solved.add((String) cur.get("problem"))) problems.add(cur);
 	            int cnt=0;
-	            for (JSONObject cur:problems) {
+	            for (JSONObject cur:problems) { 
 	            	if(stopDownload) {
                 		curChannel.sendMessage("Aborted");
                 		break;
@@ -562,7 +562,7 @@ public class BotListener implements MessageCreateListener { //this class receive
             File zip=new File("compressed.zip");
             curChannel.sendMessage(zip).thenAccept(awedkluqhaweifzzz ->{zip.delete();});
         } catch (Exception e) { //exit if there was a problem getting the submissions
-            event.getChannel().sendMessage("Error");
+        	curChannel.sendMessage("Error");
             System.err.println("Error");
             e.printStackTrace();
         }
