@@ -21,26 +21,8 @@ public class DmojCfApi { //connects to the dmoj and codeforces api and caches al
     private static final int DMOJLIMIT = 29, DMOJTIME = 20000; //dmoj api calls are limited to 90 calls/60000m(1 minute)
     private static DmojQueue dmojPrev = new DmojQueue(); //a queue of the times of previous dmoj api calls
     private static ArrayList<Problem> dmojProblemCache, cfProblemCache; //problem caches for dmoj and codeforces
-    
-    public static JSONObject query(String str) throws IOException, ParseException, InterruptedException { //queries api endpoint "str" and returns the json object recieved
-        if (str.contains("dmoj.")) { //if the api is from dmoj, ensure it does not exceed the rate limit
-            while (dmojPrev.size() >= DMOJLIMIT) {
-                if (dmojPrev.front() >= new Date().getTime() - DMOJTIME) { //if there are more than 90 calls in the last minute, wait until a minute has passed since the oldest call
-                    Thread.sleep(dmojPrev.front() - (new Date().getTime() - DMOJTIME));
-                }
-                dmojPrev.pop(); //remove the oldest api call from the queue
-            }
-            long time = new Date().getTime(); //add the current time for the new api call to the queue
-            dmojPrev.push(time);
-        }
-        URL url = new URL(str); //converts the link from string to url object
-        HttpsURLConnection conn = (HttpsURLConnection) url.openConnection(); //connects to url
-        conn.setRequestProperty("User-Agent","Mozilla/5.0 (Windows NT 5.1; rv:19.0) Gecko/20100101 Firefox/19.0");
-        JSONParser parse = new JSONParser();
-        InputStream stream = conn.getInputStream(); //gets api data to input stream
-        return (JSONObject) parse.parse(new InputStreamReader(stream)); //parses stream as a json object and returns it
-    }
-    public static JSONObject query(String str,String key,String value) throws IOException, ParseException, InterruptedException { //queries api endpoint "str" and returns the json object recieved
+
+    public static void limitDmoj() throws InterruptedException {
         while (dmojPrev.size() >= DMOJLIMIT) {
             if (dmojPrev.front() >= new Date().getTime() - DMOJTIME) { //if there are more than 90 calls in the last minute, wait until a minute has passed since the oldest call
                 Thread.sleep(dmojPrev.front() - (new Date().getTime() - DMOJTIME));
@@ -49,6 +31,18 @@ public class DmojCfApi { //connects to the dmoj and codeforces api and caches al
         }
         long time = new Date().getTime(); //add the current time for the new api call to the queue
         dmojPrev.push(time);
+    }
+    public static JSONObject query(String str) throws IOException, ParseException, InterruptedException { //queries api endpoint "str" and returns the json object recieved
+        if (str.contains("dmoj.")) limitDmoj();
+        URL url = new URL(str); //converts the link from string to url object
+        HttpsURLConnection conn = (HttpsURLConnection) url.openConnection(); //connects to url
+        conn.setRequestProperty("User-Agent","Mozilla/5.0 (Windows NT 5.1; rv:19.0) Gecko/20100101 Firefox/19.0");
+        JSONParser parse = new JSONParser();
+        InputStream stream = conn.getInputStream(); //gets api data to input stream
+        return (JSONObject) parse.parse(new InputStreamReader(stream)); //parses stream as a json object and returns it
+    }
+    public static JSONObject query(String str,String key,String value) throws IOException, ParseException, InterruptedException { //queries api endpoint "str" and returns the json object recieved
+    	limitDmoj();
         URL url = new URL(str); //converts the link from string to url object
         HttpURLConnection conn = (HttpURLConnection) url.openConnection(); //connects to url
         conn.setRequestProperty("User-Agent","Mozilla/5.0 (Windows NT 5.1; rv:19.0) Gecko/20100101 Firefox/19.0");
@@ -58,14 +52,7 @@ public class DmojCfApi { //connects to the dmoj and codeforces api and caches al
         return (JSONObject) parse.parse(new InputStreamReader(stream)); //parses stream as a json object and returns it
     }
     public static String dmojSubmission(String str,String key,String value) throws InterruptedException, IOException {
-        while (dmojPrev.size() >= DMOJLIMIT) {
-            if (dmojPrev.front() >= new Date().getTime() - DMOJTIME) { //if there are more than 90 calls in the last minute, wait until a minute has passed since the oldest call
-                Thread.sleep(dmojPrev.front() - (new Date().getTime() - DMOJTIME));
-            }
-            dmojPrev.pop(); //remove the oldest api call from the queue
-        }
-        long time = new Date().getTime(); //add the current time for the new api call to the queue
-        dmojPrev.push(time);
+        limitDmoj();
         URL url = new URL(str); //converts the link from string to url object
         HttpURLConnection conn = (HttpURLConnection) url.openConnection(); //connects to url
         conn.addRequestProperty(key, value);

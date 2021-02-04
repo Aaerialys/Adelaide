@@ -99,6 +99,7 @@ public class User implements Serializable { //contains information about a user
             }
             info = (JSONObject)((JSONObject) DmojCfApi.query("https://dmoj.ca/api/v2/user/" + name).get("data")).get("object"); //get info about user through dmoj api!setname dmoj aaeria
             if(!verify.isEmpty()) {
+            	DmojCfApi.limitDmoj();
             	URL url=new URL("https://dmoj.ca/user/"+name);
             	Document doc=Jsoup.parse(url, 20000);
                 if(!doc.text().contains(verify)) return -1;

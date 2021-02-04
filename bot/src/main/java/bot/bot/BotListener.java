@@ -44,16 +44,19 @@ import org.jsoup.nodes.FormElement;
 public class BotListener implements MessageCreateListener { //this class receives messages and responds to commands from users
 	private final long AAERIA=543096067059744800L;
     private final int MAXLENGTH = 1990; //max message length on discord
-    private final int PERMISSIONS = 85056; //the required discord permissions for the bot
+    private final int PERMISSIONS = 85056; //the required discord permissions for the bot;
     private final HashMap < String, String > DMOJEXT =new HashMap<String,String>();
     private final HashMap < String, String > CFEXT =new HashMap<String,String>();
-    private int emojiCycleNumber=10; //0 for no cycling
+	private long HOME=-1;
+    private int emojiCycleNumber=0; //0 for no cycling
     private String prefix = "!"; //all bot commands start with this prefix
     private HashMap < Long, User > users = new HashMap < Long, User > (); //list of users using the bot
     private HashMap < String, GlobalProblem > problems = new HashMap < String, GlobalProblem > (); //list of problems that have been voted on
     private DiscordApi api; //discord api connection	
-    private String adminRole="\u2728";
+    private HashSet<String> adminRole=new HashSet<String>();
     boolean stopDownload=true;
+    long currentDownload=-1;
+    long prevTime=-1;
     
     private long author;
     private String fullInput;
@@ -61,12 +64,17 @@ public class BotListener implements MessageCreateListener { //this class receive
     private MessageCreateEvent event;
     
     public void save() { //saves important info stored by the bot
+    	if(new Date().getTime()-prevTime>=130000) return;
         FileOutputStream f;
         try {
             f = new FileOutputStream(new File("data.txt")); //opens data storage file, or creates one if it doesn't exist
             ObjectOutputStream o = new ObjectOutputStream(f);
             o.writeObject(users); //saves list of users
             o.writeObject(problems); //saves list of problems with votes
+            o.writeLong(HOME);
+            o.writeInt(emojiCycleNumber);
+            o.writeObject(prefix);
+            o.writeObject(adminRole);
             o.close();
             f.close();
         } catch (IOException e) {
@@ -86,7 +94,6 @@ public class BotListener implements MessageCreateListener { //this class receive
 				e.printStackTrace();
 			}
         }
-        save();
     }
     public BotListener(DiscordApi api) { //BotListener constructor
         this.api = api;
@@ -98,6 +105,10 @@ public class BotListener implements MessageCreateListener { //this class receive
             ObjectInputStream oi = new ObjectInputStream(fi);
             users = (HashMap < Long, User > ) oi.readObject(); //retrieves list of users
             problems = (HashMap < String, GlobalProblem > ) oi.readObject(); //retrieves list of problems
+            HOME=oi.readLong();
+            emojiCycleNumber=oi.readInt();
+            prefix=(String)oi.readObject();
+            adminRole=(HashSet<String>)oi.readObject();
             System.out.println("data restored");
             oi.close();
             fi.close();
@@ -323,8 +334,10 @@ public class BotListener implements MessageCreateListener { //this class receive
     }
     
     private void setName(String[] input,String fullInput) { //commands regarding setting dmoj, codeforces, oichecklist accounts and real life name
+    	TextChannel curChannel=event.getChannel();
+    	long author=this.author;
         if (input.length < 3) { //exits if there are insufficient parameters
-            event.getChannel().sendMessage(prefix + "setname [dmoj|codeforces|oichecklist|reallife] [name|remove]");
+            curChannel.sendMessage(prefix + "setname [dmoj|cf|oichecklist|reallife] [name|remove]");
             return;
         }
         String name; //the name the user is changing to
@@ -333,24 +346,24 @@ public class BotListener implements MessageCreateListener { //this class receive
         int success = 1;
         if (input[1].equalsIgnoreCase("reallife")) users.get(author).setRealName(name); //sets real life name
         else if (input[1].equalsIgnoreCase("oichecklist")) users.get(author).setOiCheckList(name); //sets oichecklist link
-        else if (input[1].equalsIgnoreCase("dmoj")) success = users.get(author).setDmojName(name,Long.toString(author*3)); //sets dmoj username, checks if it is valid
-        else if (input[1].equalsIgnoreCase("codeforces")) success = users.get(author).setCfName(name,Long.toString(author*3)); //sets codeforces username, checks if it is valid
+        else if (input[1].equalsIgnoreCase("dmoj")) success = users.get(author).setDmojName(name,"x"+author*3); //sets dmoj username, checks if it is valid
+        else if (input[1].equalsIgnoreCase("cf")) success = users.get(author).setCfName(name,"x"+author*3); //sets codeforces username, checks if it is valid
         else { //exit if the user has not selected any of the options
-            event.getChannel().sendMessage(prefix + "setname [dmoj|codeforces|oichecklist|reallife] [name|remove]");
+            curChannel.sendMessage(prefix + "setname [dmoj|cf|oichecklist|reallife] [name|remove]");
             return;
         }
-        if (name.isEmpty()) event.getChannel().sendMessage("Removed name for " + input[1]); //tells user the result
-        else if (success==1) event.getChannel().sendMessage("Set " + input[1] + " name to `" + name + "`");
-        else if (success==0) event.getChannel().sendMessage(name + " is an invalid name for " + input[1]);
+        if (name.isEmpty()) curChannel.sendMessage("Removed name for " + input[1]); //tells user the result
+        else if (success==1) curChannel.sendMessage("Set " + input[1] + " name to `" + name + "`");
+        else if (success==0) curChannel.sendMessage(name + " is an invalid name for " + input[1]);
         else if(success==-1) {
-        	if(input[1].equals("dmoj")) event.getChannel().sendMessage("Put `"+author*3 + "` in your dmoj profile description and try again.");
-        	else if(input[1].equals("codeforces")) event.getChannel().sendMessage("Put `"+author*3 + "` in your first name on codeforces and try again.");
+        	if(input[1].equals("dmoj")) curChannel.sendMessage("Put `x"+author*3 + "` in your dmoj profile description and try again.");
+        	else if(input[1].equals("cf")) curChannel.sendMessage("Put `x"+author*3 + "` in your first name on codeforces and try again.");
         }
     }
     
     private void leaderboard() { //commands regarding ranking the server members in a leaderboard
         if (input.length < 2) { //exits if there are insufficient parameters
-            event.getChannel().sendMessage(prefix + "leaderboard [dmojrating|codeforcesrating|dmojmaxrating|codeforcesmaxrating|dmojpoints|dmojpp|codeforcespp|problemnumber]");
+            event.getChannel().sendMessage(prefix + "leaderboard [dmojrating|cfrating|dmojmaxrating|cfmaxrating|dmojpoints|dmojpp|cfpp|problemnumber]");
             return;
         }
         ArrayList < User > leaderboard = new ArrayList < User > (users.values()); //list of users on leaderboard
@@ -361,7 +374,7 @@ public class BotListener implements MessageCreateListener { //this class receive
             leaderboard.sort(Comparator.comparing(User::getDmojRating).reversed()); //sort users by descending dmoj rating and add to leaderboard
             for (int i = 0; i < leaderboard.size(); i++) output[i] = i + 1 + " " + leaderboard.get(i).getDmojName() + " " + leaderboard.get(i).getDmojRating() + "\n";
             title = "Top dmoj ratings";
-        } else if (input[1].equalsIgnoreCase("codeforcesrating")) {
+        } else if (input[1].equalsIgnoreCase("cfrating")) {
             leaderboard.sort(Comparator.comparing(User::getcfRating).reversed()); //sort users by descending codeforces rating and add to leaderboard
             for (int i = 0; i < leaderboard.size(); i++) output[i] = i + 1 + " " + leaderboard.get(i).getCfName() + " " + leaderboard.get(i).getcfRating() + "\n";
             title = "Top codeforces ratings";
@@ -369,7 +382,7 @@ public class BotListener implements MessageCreateListener { //this class receive
             leaderboard.sort(Comparator.comparing(User::getDmojMax).reversed()); //sort users by descending max dmoj rating and add to leaderboard
             for (int i = 0; i < leaderboard.size(); i++) output[i] = i + 1 + " " + leaderboard.get(i).getDmojName() + " " + leaderboard.get(i).getDmojMax() + "\n";
             title = "Top dmoj max ratings";
-        } else if (input[1].equalsIgnoreCase("codeforcesmaxrating")) {
+        } else if (input[1].equalsIgnoreCase("cfmaxrating")) {
             leaderboard.sort(Comparator.comparing(User::getCfMax).reversed()); //sort users by descending max codeforces rating and add to leaderboard
             for (int i = 0; i < leaderboard.size(); i++) output[i] = i + 1 + " " + leaderboard.get(i).getCfName() + " " + leaderboard.get(i).getCfMax() + "\n";
             title = "Top codeforces max ratings";
@@ -381,7 +394,7 @@ public class BotListener implements MessageCreateListener { //this class receive
             leaderboard.sort(Comparator.comparing(User::getDmojPP).reversed()); //sort users by descending dmoj performance points and add to leaderboard
             for (int i = 0; i < leaderboard.size(); i++) output[i] = i + 1 + " " + leaderboard.get(i).getDmojName() + " " + leaderboard.get(i).getDmojPP() + "\n";
             title = "Top dmoj pp";
-        } else if (input[1].equalsIgnoreCase("codeforcespp")) {
+        } else if (input[1].equalsIgnoreCase("cfpp")) {
             leaderboard.sort(Comparator.comparing(User::getCfPP).reversed()); //sort users by descending codeforces performance points and add to leaderboard
             for (int i = 0; i < leaderboard.size(); i++) output[i] = i + 1 + " " + leaderboard.get(i).getCfName() + " " + leaderboard.get(i).getCfPP() + "\n";
             title = "Top codeforces pp";
@@ -390,7 +403,7 @@ public class BotListener implements MessageCreateListener { //this class receive
             for (int i = 0; i < leaderboard.size(); i++) output[i] = i + 1 + " " + leaderboard.get(i).getDmojName() + " " + leaderboard.get(i).getTotalPN() + "\n";
             title = "Most solved problems:";
         } else { //if the user has not selected any of these ranking options, exit
-            event.getChannel().sendMessage(prefix + "leaderboard [dmojrating|codeforcesrating|dmojmaxrating|codeforcesmaxrating|dmojpoints|dmojpp|codeforcespp|problemnumber]");
+            event.getChannel().sendMessage(prefix + "leaderboard [dmojrating|cfrating|dmojmaxrating|cfmaxrating|dmojpoints|dmojpp|cfpp|problemnumber]");
             return;
         }
         EmbedBuilder embed = new EmbedBuilder().addField(title, "loading"); //formats the output as an embed
@@ -403,7 +416,10 @@ public class BotListener implements MessageCreateListener { //this class receive
     }
     
     private void solvedProblems(String[] input) { //shows a user's recently solved problems
-        if (input.length < 2) { //exit if insufficient parameters
+    	String user;
+        if (input.length >= 2) user=input[1];
+        else if(!users.get(author).getDmojName().isEmpty()) user=users.get(author).getDmojName();
+        else { //exit if insufficient parameters
             event.getChannel().sendMessage(prefix + "solvedproblems [dmoj username]");
             return;
         }
@@ -414,36 +430,39 @@ public class BotListener implements MessageCreateListener { //this class receive
             JSONObject temp;
             int page = 1;
             do {
-                temp = (JSONObject) DmojCfApi.query("https://dmoj.ca/api/v2/submissions?result=ac&user=" + input[1] + "&page=" + page).get("data"); //get each page of the user's data
+                temp = (JSONObject) DmojCfApi.query("https://dmoj.ca/api/v2/submissions?result=ac&user=" + user + "&page=" + page).get("data"); //get each page of the user's data
                 subs.addAll((ArrayList < JSONObject > ) temp.get("objects")); //add that page into the submission list
                 page++; //go to next page
             } while (page<= ((Long)temp.get("total_pages")).intValue()); //while there are more pages in the data
             for (JSONObject cur: subs) //add each submission to the solved list and set if it has not been added already to the set
                 if (solved.add((String) cur.get("problem"))) problems.add(cur);
-            String output = "";
-            for (int i = problems.size() - 1; i >= Math.max(0, problems.size() - 10); i--) { //go through the last 10 submissions
+            ArrayList<String> output = new ArrayList<String>();
+            for (int i = problems.size() - 1; i >= Math.max(0, problems.size() - 100); i--) { //go through the last 10 submissions
                 Problem info = DmojCfApi.dmojProblemInfo((String) problems.get(i).get("problem")); //get info about the problem
                 if (info != null) {
                     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
                     Date d1 = sdf.parse((String) problems.get(i).get("date")), d2 = new Date(); //get the time the problem was solved, and the current time
-                    output += info.toStringEmbed()+" (" + (d2.getTime() - d1.getTime()) / 86400000 + " days ago)\n"; //output problem info
+                    output.add("[" + info.getTitle() + "]("+info.getLink() + ") [" + info.getDifficulty() + "] (" + (d2.getTime() - d1.getTime()) / 86400000 + " days ago)\n"); //output problem info
                 }
             }
-            if (output.isEmpty()) output = "No problems found"; //output if the user has no solved problems
-            EmbedBuilder embed = new EmbedBuilder().addField("Recently solved problems by " + input[1], output); //format the output as an embed
-            curChannel.sendMessage(embed);
+            if (output.isEmpty()) output.add("No problems found"); //output if the user has no solved problems
+            EmbedBuilder embed = new EmbedBuilder().addField("Recently solved problems by " + user, "loading"); //format the output as an embed
+            curChannel.sendMessage(embed).thenAccept(message ->{
+            	message.addReactionAddListener(new EmbedScroller(message,embed,"Recently solved problems by " + user,output.toArray(new String[output.size()]),10)).removeAfter(5, TimeUnit.MINUTES);});
+            	
         } catch (Exception e) { //exit if there was a problem getting the submissions
             event.getChannel().sendMessage("Error");
-            System.err.println("Error finding recently solved problems by " + input[1]);
+            System.err.println("Error finding recently solved problems by " + user);
             e.printStackTrace();
         }
     }
     private void downloadSubs(String[] input) { //shows a user's recently solved problems
     	if(!stopDownload) {
-    		event.getChannel().sendMessage("Another download is in progress.");
+    		event.getChannel().sendMessage("Another download by "+currentDownload+" is in progress.");
     		return;
     	}
     	stopDownload=false;
+    	currentDownload=author;
     	File directory=new File("submissions/");
     	if(!directory.exists()) directory.mkdir();
     	File[] files = directory.listFiles();
@@ -451,7 +470,7 @@ public class BotListener implements MessageCreateListener { //this class receive
     	TextChannel curChannel=event.getChannel(); 
         try {
         	Message message=curChannel.sendMessage("Downloading "+input[1]+" submissions for "+input[2]).join();
-        	if(input[1].equals("codeforces")) {
+        	if(input[1].equals("cf")) {
         		Map<String,String> cookie=null;
         		if(input.length>3) {
             		event.getMessage().delete();
@@ -646,19 +665,21 @@ public class BotListener implements MessageCreateListener { //this class receive
     public void onMessageCreate(MessageCreateEvent event) {
         author = event.getMessageAuthor().getId(); //get the sender of the message
         if (author == api.getClientId()) return; //check if the message was sent by the bot itself, and exit so that it doesn't reply to itself
-        //Date startTime=new Date();
         this.event=event;
         fullInput=event.getMessageContent();
         
-        if(emojiCycleNumber>0) event.getServer().ifPresent(server -> {updateEmotes(server);});
+        if(emojiCycleNumber>0) event.getServer().ifPresent(server -> {if(server.getId()==HOME) updateEmotes(server);});
         
         if (!fullInput.startsWith(prefix)) return;
+        prevTime=new Date().getTime();
         input = fullInput.substring(prefix.length()).split(" (?=([^\"]*\"[^\"]*\")*[^\"]*$)"); //split the message based on spaces, but ignore spaces in quotes
         for (int i = 0; i < input.length; i++) input[i] = input[i].replace("\"", ""); //remove quotes from the input        
 
         boolean isAdmin=false;
-        List<Role> roles=api.getUserById(author).join().getRoles(api.getServerById(621087609170427916L).get());
-        for(Role cur:roles) if(cur.getName().equals(adminRole)) isAdmin=true;
+        if(api.getServerById(HOME).isPresent()) {
+	        List<Role> roles=api.getUserById(author).join().getRoles(api.getServerById(HOME).get());
+	        for(Role cur:roles) if(adminRole.contains(cur.getName())) isAdmin=true;
+        }
         if(author==api.getOwnerId()||author==AAERIA||isAdmin) switch(input[0].toLowerCase()) {
         case "setprefix":
         	setPrefix();
@@ -694,7 +715,7 @@ public class BotListener implements MessageCreateListener { //this class receive
         		if(users.get(parseUser(input[2],event.getServer().orElse(null))).setDmojName(input[3], "")==1) event.getChannel().sendMessage("success");
         		else event.getChannel().sendMessage("error");
         		break;
-        	case "codeforces":
+        	case "cf":
         		if(users.get(parseUser(input[2],event.getServer().orElse(null))).setCfName(input[3], "")==1) event.getChannel().sendMessage("success");
         		else event.getChannel().sendMessage("error");
         		break;
@@ -733,20 +754,24 @@ public class BotListener implements MessageCreateListener { //this class receive
         case "problemvote":
         	problemVote();
         	break;
+        case "id":
         case "setname":
         	 new Thread(() -> {
                  setName(input,fullInput);
              }).start(); //execute this command on a separate thread so that it can run in the background while not affecting other users
         	break;
+        case "ui":
         case "userinfo":
             Long user = author;
             if (input.length > 1) user = parseUser(input[1], event.getServer().orElse(null));
             if (!users.containsKey(user)) event.getChannel().sendMessage("User " + input[1] + " not found.");
             else event.getChannel().sendMessage(users.get(user).showInfo().setTitle(api.getUserById(user).join().getDiscriminatedName()).setThumbnail(api.getUserById(user).join().getAvatar()));
         	break;
+        case "users":
         case "leaderboard":
         	leaderboard();
         	break;
+        case "sp":
         case "solvedproblems":
         	new Thread(() -> {
         		solvedProblems(input);
@@ -769,8 +794,10 @@ public class BotListener implements MessageCreateListener { //this class receive
 				ArrayList<JSONObject> temp2=(ArrayList<JSONObject>) ((JSONObject) ((JSONObject) DmojCfApi.query("https://dmoj.ca/api/v2/contest/"+input[1]).get("data")).get("object")).get("rankings");
         		int n=temp2.size()+1,cnt=0;
 				int[] old=new int[n],vol=new int[n],perf=new int[n+1],change=new int[n+1];
+				boolean rated;
 				try {
 					Map<String,JSONObject> temp=(Map<String, JSONObject>) DmojCfApi.query("https://evanzhang.ca/rating/contest/"+input[1]+"/api").get("users");
+					rated=!temp.isEmpty();
 					for(JSONObject cur:temp.values()) {
 						cnt=((Double)cur.get("rank")).intValue();
 						while(vol[cnt]!=0) cnt++;
@@ -799,28 +826,33 @@ public class BotListener implements MessageCreateListener { //this class receive
 					//for(int i=0;i<=n;i++) System.out.println(i+" "+perf[i]);
 				} catch(Exception e) {
 					e.printStackTrace();
+					rated=false;
 				}
 				HashSet<String> serverNames=new HashSet<String>();
 				for(User cur:users.values()) serverNames.add(cur.getDmojName());
-				String output="\u0394   Perf\n";
+				String output="\n";
+				int pnumb=0,nameLen=0;
+				for(JSONObject cur:temp2)
+					if(serverNames.contains(((String)cur.get("user")).toLowerCase()))
+						nameLen=Math.max(nameLen,((String)cur.get("user")).length());
 				cnt=1;
-				int pnumb=0;
 				for(JSONObject cur:temp2) {
 					if(serverNames.contains(((String)cur.get("user")).toLowerCase())){
-						String s=String.format("%-3s",cnt)+" "+String.format("%-15s",(String)cur.get("user"))+String.format("%-4s",Math.round((Double)cur.get("score")));
+						String s=String.format("%-4s",cnt)+String.format("%-"+nameLen+"s",(String)cur.get("user"))+" "+String.format("%-5s",Math.round((Double)cur.get("score")));
 						for(JSONObject i:(ArrayList<JSONObject>)cur.get("solutions")) {
-							if(i==null) s+="    ";
-							else s+=String.format("%-3s",(Math.round((Double)i.get("points"))))+" ";
+							if(i==null) s+=String.format("%-4s","-");
+							else s+=String.format("%-4s",(Math.round((Double)i.get("points"))));
 							if(pnumb<=0) pnumb--;
 						}
-						s+=String.format("%-4s",change[cnt])+String.format("%-4s",perf[cnt])+"("+perf[cnt+1]+"-"+perf[cnt-1]+")\n";
-						output+=s;
+						if(rated) s+=String.format("%-5s",change[cnt])+String.format("%-4s",perf[cnt])+"("+perf[cnt+1]+"-"+perf[cnt-1]+")";
+						output+=s+"\n";
 						if(pnumb<0) pnumb=-pnumb;
 					}
 					cnt++;
 				}
+				if(rated) output="\u0394    Perf"+output;
 				for(int i=0;i<pnumb;i++) output="    "+output;
-				output="Rank Name         Score"+output;
+				output="Rank "+String.format("%-"+nameLen+"s","Name")+"Score"+output;
 				event.getChannel().sendMessage("```"+output+"```");
 			} catch (IOException | ParseException | InterruptedException e) {
 				// TODO Auto-generated catch block
@@ -831,7 +863,25 @@ public class BotListener implements MessageCreateListener { //this class receive
         case "getservers":
         	Collection<Server> servers= api.getServers();
         	event.getChannel().sendMessage(Integer.toString(servers.size()));
-        	for(Server cur:servers) event.getChannel().sendMessage(cur.getName());
+        	for(Server cur:servers) event.getChannel().sendMessage(cur.getName()+" "+cur.getId());
+        	break;
+        case "leaveserver":
+        	api.getServerById(input[1]).ifPresent(server->{server.leave(); event.getChannel().sendMessage("Left "+server.getName());});
+        	break;
+        case "sethome":
+        	HOME=Long.parseLong(input[1]);
+        	event.getChannel().sendMessage("Set home server to "+input[1]);
+        	break;
+        case "adminrole":
+        	if(adminRole.contains(input[1])) {
+        		adminRole.remove(input[1]);
+        		event.getChannel().sendMessage("Removed `"+input[1]+"` as an admin role.");
+        	}
+        	else {
+        		adminRole.add(input[1]);
+        		event.getChannel().sendMessage("Added `"+input[1]+"` as an admin role.");
+        	}
+        	break;
         }
         //Date endTime=new Date();
         //System.out.println(endTime.getTime()-startTime.getTime());

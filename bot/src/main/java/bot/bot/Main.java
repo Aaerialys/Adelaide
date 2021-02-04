@@ -10,6 +10,11 @@ import org.javacord.api.entity.intent.Intent;
 
 public class Main {
     private static BotListener bot;
+    private static class Save extends TimerTask {
+        public void run() {
+            bot.save();
+        }
+    }
     private static class Update extends TimerTask {
         public void run() {
             bot.update1();
@@ -26,6 +31,7 @@ public class Main {
         bot = new BotListener(api); //creates new message listener and adds it to the current bot
         api.addListener(bot);
         Timer timer = new Timer(); //sets a timer to save bot data automatically
+        timer.schedule(new Save(), 0, 120000);//2 minute
         timer.schedule(new Update(), 0, 3600000);//1 hour
         System.out.println("Bot started");
     }
