@@ -840,7 +840,7 @@ public class BotListener implements MessageCreateListener { //this class receive
 					if(serverNames.contains(((String)cur.get("user")).toLowerCase())){
 						String s=String.format("%-4s",cnt)+String.format("%-"+nameLen+"s",(String)cur.get("user"))+" "+String.format("%-5s",Math.round((Double)cur.get("score")));
 						for(JSONObject i:(ArrayList<JSONObject>)cur.get("solutions")) {
-							if(i==null) s+=String.format("%-4s","-");
+							if(i==null) s+=String.format("%-4s",".");
 							else s+=String.format("%-4s",(Math.round((Double)i.get("points"))));
 							if(pnumb<=0) pnumb--;
 						}
