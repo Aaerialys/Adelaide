@@ -840,17 +840,24 @@ public class BotListener implements MessageCreateListener { //this class receive
 					if(serverNames.contains(((String)cur.get("user")).toLowerCase())){
 						String s=String.format("%-4s",cnt)+String.format("%-"+nameLen+"s",(String)cur.get("user"))+" "+String.format("%-5s",Math.round((Double)cur.get("score")));
 						for(JSONObject i:(ArrayList<JSONObject>)cur.get("solutions")) {
-							if(i==null) s+=String.format("%-4s",".");
+							if(i==null) s+=String.format("%-4s","-");
 							else s+=String.format("%-4s",(Math.round((Double)i.get("points"))));
 							if(pnumb<=0) pnumb--;
 						}
-						if(rated) s+=String.format("%-5s",change[cnt])+String.format("%-4s",perf[cnt])+"("+perf[cnt+1]+"-"+perf[cnt-1]+")";
+						if(rated) s+=String.format("%-5s",change[cnt])+String.format("%-16s",perf[cnt]+"("+perf[cnt+1]+"-"+perf[cnt-1]+")")+old[cnt]+"->"+(old[cnt]+change[cnt]);
 						output+=s+"\n";
 						if(pnumb<0) pnumb=-pnumb;
 					}
 					cnt++;
+					if(output.length()>1800) {
+						if(rated) output="\u0394    Perf            Rating"+output;
+						for(int i=0;i<pnumb;i++) output="    "+output;
+						output="Rank "+String.format("%-"+nameLen+"s","Name")+"Score"+output;
+						event.getChannel().sendMessage("```"+output+"```");
+						output="\n";
+					}
 				}
-				if(rated) output="\u0394    Perf"+output;
+				if(rated) output="\u0394    Perf            Rating"+output;
 				for(int i=0;i<pnumb;i++) output="    "+output;
 				output="Rank "+String.format("%-"+nameLen+"s","Name")+"Score"+output;
 				event.getChannel().sendMessage("```"+output+"```");
