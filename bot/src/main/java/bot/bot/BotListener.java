@@ -742,8 +742,8 @@ public class BotListener implements MessageCreateListener { //this class receive
         case "help"://sends an embed with bot information
             EmbedBuilder embed = new EmbedBuilder()
             .setAuthor(api.getUserById(api.getClientId()).join().getName(), null, api.getUserById(api.getClientId()).join().getAvatar())
-            .addField("Documentation", "[Documentation site](https://docs.xadelaide.cf/)")
-            .addField("Commands", "[Command List](https://docs.xadelaide.cf/commands-1/documentation-format)")
+            .addField("Documentation", "[Documentation site](https://victorgao001.gitbook.io/xadelaide-documentation/)")
+            .addField("Commands", "[Command List](https://victorgao001.gitbook.io/xadelaide-documentation/)")
             .addField("Invite", "[Invite link](" + api.createBotInvite() + PERMISSIONS + ")")
         	.addField("Support", "[Server link](https://discord.gg/jnJjbGw)");
             event.getChannel().sendMessage(embed);
@@ -831,7 +831,7 @@ public class BotListener implements MessageCreateListener { //this class receive
 				HashSet<String> serverNames=new HashSet<String>();
 				for(User cur:users.values()) serverNames.add(cur.getDmojName());
 				String output="\n";
-				int pnumb=0,nameLen=0;
+				int pnumb=0,nameLen=1;
 				for(JSONObject cur:temp2)
 					if(serverNames.contains(((String)cur.get("user")).toLowerCase()))
 						nameLen=Math.max(nameLen,((String)cur.get("user")).length());

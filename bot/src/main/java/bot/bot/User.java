@@ -97,6 +97,7 @@ public class User implements Serializable { //contains information about a user
                 dmojPoints = dmojPP = dmojRating = dmojPN = dmojMax = 0;
                 return 1;
             }
+            name=name.toLowerCase();
             info = (JSONObject)((JSONObject) DmojCfApi.query("https://dmoj.ca/api/v2/user/" + name).get("data")).get("object"); //get info about user through dmoj api!setname dmoj aaeria
             if(!verify.isEmpty()) {
             	DmojCfApi.limitDmoj();
@@ -131,6 +132,7 @@ public class User implements Serializable { //contains information about a user
                 cfRating = cfPN = cfMax = cfPP = 0;
                 return 1;
             }
+            name=name.toLowerCase();
             info = (JSONObject)((JSONArray) DmojCfApi.query("https://codeforces.com/api/user.info?handles=" + name).get("result")).get(0); //get info about user on codeforces
             if(!verify.isEmpty()&&!info.get("firstName").equals(verify)) return -1;
             ArrayList < JSONObject > submissions = (ArrayList < JSONObject > ) DmojCfApi.query("https://codeforces.com/api/user.status?handle=" + name).get("result"); //get all the user's submissions
