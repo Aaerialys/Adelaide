@@ -745,7 +745,7 @@ public class BotListener implements MessageCreateListener { //this class receive
             .addField("Documentation", "[Documentation site](https://victorgao001.gitbook.io/xadelaide-documentation/)")
             .addField("Commands", "[Command List](https://victorgao001.gitbook.io/xadelaide-documentation/)")
             .addField("Invite", "[Invite link](" + api.createBotInvite() + PERMISSIONS + ")")
-        	.addField("Support", "[Server link](https://discord.gg/jnJjbGw)");
+        	.addField("Support", "[Server link](http://cccdiscord.cf/)");
             event.getChannel().sendMessage(embed);
             break;
         case "problemlist":
