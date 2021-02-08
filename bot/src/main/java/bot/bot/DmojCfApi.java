@@ -55,6 +55,7 @@ public class DmojCfApi { //connects to the dmoj and codeforces api and caches al
         limitDmoj();
         URL url = new URL(str); //converts the link from string to url object
         HttpURLConnection conn = (HttpURLConnection) url.openConnection(); //connects to url
+        conn.setRequestProperty("User-Agent","Mozilla/5.0 (Windows NT 5.1; rv:19.0) Gecko/20100101 Firefox/19.0");
         conn.addRequestProperty(key, value);
         return new BufferedReader(new InputStreamReader(conn.getInputStream()))
         		  .lines().collect(Collectors.joining("\n"));
