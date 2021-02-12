@@ -106,7 +106,8 @@ public class User implements Serializable { //contains information about a user
                 if(!doc.text().contains(verify)) return -1;
             }
             //sets dmoj statistics from the information
-            dmojRating = ((Long) info.get("rating")).intValue();
+            if(info.get("rating")!=null) dmojRating = ((Long) info.get("rating")).intValue();
+            else dmojRating=0;
             dmojPoints = (double) info.get("points");
             dmojPP = (double) info.get("performance_points");
             dmojPN = ((Long) info.get("problem_count")).intValue();
@@ -144,8 +145,11 @@ public class User implements Serializable { //contains information about a user
                     ((JSONObject) cur.get("problem")).get("rating") != null) //if the problem is rated and not already in the set, it will contribute to the user's performance points
                     cfPP += (int) Math.pow(2, (long)((JSONObject) cur.get("problem")).get("rating") / 300.0 - 2);
             //sets other codeforces statistics for the user
-            cfRating = ((Long) info.get("rating")).intValue();
-            cfMax = ((Long) info.get("maxRating")).intValue();
+            if(info.get("rating")!=null) {
+            	cfRating = ((Long) info.get("rating")).intValue();
+            	cfMax = ((Long) info.get("maxRating")).intValue();
+            }
+            else cfRating=cfMax=0;
             cfPN = problems.size();
             cfName = name;
             return 1; //returns true, as no problems have occured

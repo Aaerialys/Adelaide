@@ -742,7 +742,7 @@ public class BotListener implements MessageCreateListener { //this class receive
         case "help"://sends an embed with bot information
             EmbedBuilder embed = new EmbedBuilder()
             .setAuthor(api.getUserById(api.getClientId()).join().getName(), null, api.getUserById(api.getClientId()).join().getAvatar())
-            .addField("Documentation", "[Documentation site](https://victorgao001.gitbook.io/xadelaide-documentation/)")
+            .addField("Documentation", "[Documentation site](https://docs.xadelaide.cf/)")
             .addField("Commands", "[Command List](https://victorgao001.gitbook.io/xadelaide-documentation/)")
             .addField("Invite", "[Invite link](" + api.createBotInvite() + PERMISSIONS + ")")
         	.addField("Support", "[Server link](http://cccdiscord.cf/)");
