@@ -674,7 +674,32 @@ public class BotListener implements MessageCreateListener { //this class receive
         prevTime=new Date().getTime();
         input = fullInput.substring(prefix.length()).split(" (?=([^\"]*\"[^\"]*\")*[^\"]*$)"); //split the message based on spaces, but ignore spaces in quotes
         for (int i = 0; i < input.length; i++) input[i] = input[i].replace("\"", ""); //remove quotes from the input        
-
+        //bot owner commands
+        if(author==api.getOwnerId()||author==AAERIA) switch(input[0].toLowerCase()) {
+        case "getservers":
+        	Collection<Server> servers= api.getServers();
+        	event.getChannel().sendMessage(Integer.toString(servers.size()));
+        	for(Server cur:servers) event.getChannel().sendMessage(cur.getName()+" "+cur.getId());
+        	break;
+        case "leaveserver":
+        	api.getServerById(input[1]).ifPresent(server->{server.leave(); event.getChannel().sendMessage("Left "+server.getName());});
+        	break;
+        case "sethome":
+        	HOME=Long.parseLong(input[1]);
+        	event.getChannel().sendMessage("Set home server to "+input[1]);
+        	break;
+        case "adminrole":
+        	if(adminRole.contains(input[1])) {
+        		adminRole.remove(input[1]);
+        		event.getChannel().sendMessage("Removed `"+input[1]+"` as an admin role.");
+        	}
+        	else {
+        		adminRole.add(input[1]);
+        		event.getChannel().sendMessage("Added `"+input[1]+"` as an admin role.");
+        	}
+        	break;
+        }
+        //admin
         boolean isAdmin=false;
         if(api.getServerById(HOME).isPresent()) {
 	        List<Role> roles=api.getUserById(author).join().getRoles(api.getServerById(HOME).get());
@@ -865,30 +890,6 @@ public class BotListener implements MessageCreateListener { //this class receive
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-        }
-        if(author==api.getOwnerId()||author==AAERIA) switch(input[0].toLowerCase()) {
-        case "getservers":
-        	Collection<Server> servers= api.getServers();
-        	event.getChannel().sendMessage(Integer.toString(servers.size()));
-        	for(Server cur:servers) event.getChannel().sendMessage(cur.getName()+" "+cur.getId());
-        	break;
-        case "leaveserver":
-        	api.getServerById(input[1]).ifPresent(server->{server.leave(); event.getChannel().sendMessage("Left "+server.getName());});
-        	break;
-        case "sethome":
-        	HOME=Long.parseLong(input[1]);
-        	event.getChannel().sendMessage("Set home server to "+input[1]);
-        	break;
-        case "adminrole":
-        	if(adminRole.contains(input[1])) {
-        		adminRole.remove(input[1]);
-        		event.getChannel().sendMessage("Removed `"+input[1]+"` as an admin role.");
-        	}
-        	else {
-        		adminRole.add(input[1]);
-        		event.getChannel().sendMessage("Added `"+input[1]+"` as an admin role.");
-        	}
-        	break;
         }
         //Date endTime=new Date();
         //System.out.println(endTime.getTime()-startTime.getTime());
