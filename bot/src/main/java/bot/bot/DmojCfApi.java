@@ -21,7 +21,6 @@ public class DmojCfApi { //connects to the dmoj and codeforces api and caches al
     private static final int DMOJLIMIT = 29, DMOJTIME = 20000; //dmoj api calls are limited to 90 calls/60000m(1 minute)
     private static DmojQueue dmojPrev = new DmojQueue(); //a queue of the times of previous dmoj api calls
     private static ArrayList<Problem> dmojProblemCache, cfProblemCache; //problem caches for dmoj and codeforces
-
     public static void limitDmoj() throws InterruptedException {
         while (dmojPrev.size() >= DMOJLIMIT) {
             if (dmojPrev.front() >= new Date().getTime() - DMOJTIME) { //if there are more than 90 calls in the last minute, wait until a minute has passed since the oldest call

@@ -47,6 +47,7 @@ public class BotListener implements MessageCreateListener { //this class receive
     private final int PERMISSIONS = 85056; //the required discord permissions for the bot;
     private final HashMap < String, String > DMOJEXT =new HashMap<String,String>();
     private final HashMap < String, String > CFEXT =new HashMap<String,String>();
+    private static HashMap<String,Long> userFromDmoj=new HashMap<String,Long>(),userFromCf=new HashMap<String,Long>();
 	private long HOME=-1;
     private int emojiCycleNumber=0; //0 for no cycling
     private String prefix = "!"; //all bot commands start with this prefix
@@ -75,6 +76,8 @@ public class BotListener implements MessageCreateListener { //this class receive
             o.writeInt(emojiCycleNumber);
             o.writeObject(prefix);
             o.writeObject(adminRole);
+            o.writeObject(userFromDmoj);
+            o.writeObject(userFromCf);
             o.close();
             f.close();
         } catch (IOException e) {
@@ -87,6 +90,8 @@ public class BotListener implements MessageCreateListener { //this class receive
         for(User user:users.values()) {
         	user.setCfName(user.getCfName(), "");
         	user.setDmojName(user.getDmojName(), "");
+        	userFromDmoj.put(user.getDmojName(),user.getId());
+        	userFromCf.put(user.getCfName(),user.getId());
         	try {
 				Thread.sleep(200);
 			} catch (InterruptedException e) {
@@ -109,6 +114,8 @@ public class BotListener implements MessageCreateListener { //this class receive
             emojiCycleNumber=oi.readInt();
             prefix=(String)oi.readObject();
             adminRole=(HashSet<String>)oi.readObject();
+            userFromDmoj=(HashMap<String,Long>)oi.readObject();
+            userFromCf=(HashMap<String,Long>)oi.readObject();
             System.out.println("data restored");
             oi.close();
             fi.close();
@@ -153,6 +160,10 @@ public class BotListener implements MessageCreateListener { //this class receive
             return api.getCachedUsersByNameIgnoreCase(input).iterator().next().getId();
         if (s != null && !api.getCachedUsersByNicknameIgnoreCase(input, s).isEmpty()) //checks if the input could be the nickname of a user in the server (eg. bob)
             return api.getCachedUsersByNicknameIgnoreCase(input, s).iterator().next().getId();
+        if(userFromDmoj.containsKey(input))
+        	return userFromDmoj.get(input);
+        if(userFromCf.containsKey(input))
+        	return userFromCf.get(input);
         return null; //if the input is none of these, it doesn't contain a valid discord user
     }
     private Long parseUser(String input,Server s) {
@@ -353,7 +364,11 @@ public class BotListener implements MessageCreateListener { //this class receive
             return;
         }
         if (name.isEmpty()) curChannel.sendMessage("Removed name for " + input[1]); //tells user the result
-        else if (success==1) curChannel.sendMessage("Set " + input[1] + " name to `" + name + "`");
+        else if (success==1) {
+        	if(input[1].equals("dmoj")) userFromDmoj.put(name,author);
+        	else if(input[1].equals("cf")) userFromCf.put(name,author);
+        	curChannel.sendMessage("Set " + input[1] + " name to `" + name + "`");
+        }
         else if (success==0) curChannel.sendMessage(name + " is an invalid name for " + input[1]);
         else if(success==-1) {
         	if(input[1].equals("dmoj")) curChannel.sendMessage("Put `x"+author*3 + "` in your dmoj profile description and try again.");
@@ -713,7 +728,7 @@ public class BotListener implements MessageCreateListener { //this class receive
         	if(input.length<2) break;
         	Long user=parseUser(input[1],event.getServer().orElse(null));
         	if(user==null) {
-        		event.getChannel().sendMessage(input[1]+" not found.a");
+        		event.getChannel().sendMessage(input[1]+" not found.");
         		break;
         	}
         	author=user;
@@ -735,13 +750,20 @@ public class BotListener implements MessageCreateListener { //this class receive
         		event.getChannel().sendMessage("Cycling off.");
         	}
         case "set":
+        	input[3]=input[3].toLowerCase();
         	switch(input[1].toLowerCase()) {
         	case "dmoj":
-        		if(users.get(parseUser(input[2],event.getServer().orElse(null))).setDmojName(input[3], "")==1) event.getChannel().sendMessage("success");
+        		if(users.get(parseUser(input[2],event.getServer().orElse(null))).setDmojName(input[3], "")==1) {
+        			userFromDmoj.put(input[3],parseUser(input[2],event.getServer().orElse(null)));
+        			event.getChannel().sendMessage("success");
+        		}
         		else event.getChannel().sendMessage("error");
         		break;
         	case "cf":
-        		if(users.get(parseUser(input[2],event.getServer().orElse(null))).setCfName(input[3], "")==1) event.getChannel().sendMessage("success");
+        		if(users.get(parseUser(input[2],event.getServer().orElse(null))).setCfName(input[3], "")==1) {
+        			userFromCf.put(input[3],parseUser(input[2],event.getServer().orElse(null)));
+        			event.getChannel().sendMessage("success");
+        		}
         		else event.getChannel().sendMessage("error");
         		break;
         	case "problemscore":
