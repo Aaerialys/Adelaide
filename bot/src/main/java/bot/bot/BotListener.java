@@ -669,7 +669,7 @@ public class BotListener implements MessageCreateListener { //this class receive
         fullInput=event.getMessageContent();
         
         if(emojiCycleNumber>0) event.getServer().ifPresent(server -> {if(server.getId()==HOME) updateEmotes(server);});
-        
+
         if (!fullInput.startsWith(prefix)) return;
         prevTime=new Date().getTime();
         input = fullInput.substring(prefix.length()).split(" (?=([^\"]*\"[^\"]*\")*[^\"]*$)"); //split the message based on spaces, but ignore spaces in quotes
@@ -819,7 +819,7 @@ public class BotListener implements MessageCreateListener { //this class receive
 				ArrayList<JSONObject> temp2=(ArrayList<JSONObject>) ((JSONObject) ((JSONObject) DmojCfApi.query("https://dmoj.ca/api/v2/contest/"+input[1]).get("data")).get("object")).get("rankings");
         		int n=temp2.size()+1,cnt=0;
 				int[] old=new int[n],vol=new int[n],perf=new int[n+1],change=new int[n+1];
-				boolean rated;
+				boolean rated=false;
 				try {
 					Map<String,JSONObject> temp=(Map<String, JSONObject>) DmojCfApi.query("https://evanzhang.ca/rating/contest/"+input[1]+"/api").get("users");
 					rated=!temp.isEmpty();
@@ -853,6 +853,39 @@ public class BotListener implements MessageCreateListener { //this class receive
 					e.printStackTrace();
 					rated=false;
 				}
+				if(!rated&&input.length>2&&input[2].equals("forcerate")) {
+					rated=true;
+					cnt=1;
+					ArrayList<Integer> prevRatings=new ArrayList<Integer>();
+					for(JSONObject cur:temp2) {
+						if(cur.get("old_rating")==null) old[cnt]=-1000;
+						else {
+							old[cnt]=((Long)cur.get("old_rating")).intValue();
+							prevRatings.add(old[cnt]);
+						}
+						cnt++;
+					}
+					ArrayList<Integer> deltas=CodeforcesRatingCalculator.calculateRatingChanges(prevRatings);
+					cnt=0;
+					int prev=n-1; cnt=deltas.size()-1;
+					for(int i=n-1;i>=0;i--) {
+						if(i==0) {
+							old[i]=old[prev];
+							perf[i]=perf[prev];
+						}
+						if(old[i]!=-1000) {
+							if(i>0) {
+								change[i]=deltas.get(cnt);
+								perf[i]=old[i]+deltas.get(cnt)*4;
+							}
+							for(int j=i+1;j<prev;j++) {
+								perf[j]=(perf[i]*(prev-j)+perf[prev]*(j-i))/(prev-i);
+								change[j]=perf[j]-1200;
+							}
+							cnt--; prev=i;
+						}
+					}
+				}
 				HashSet<String> serverNames=new HashSet<String>();
 				for(User cur:users.values()) serverNames.add(cur.getDmojName());
 				String output="\n";
@@ -869,7 +902,11 @@ public class BotListener implements MessageCreateListener { //this class receive
 							else s+=String.format("%-4s",(Math.round((Double)i.get("points"))));
 							if(pnumb<=0) pnumb--;
 						}
-						if(rated) s+=String.format("%-5s",change[cnt])+String.format("%-16s",perf[cnt]+"("+perf[cnt+1]+"-"+perf[cnt-1]+")")+old[cnt]+"->"+(old[cnt]+change[cnt]);
+						if(rated) {
+							s+=String.format("%-5s",change[cnt])+String.format("%-16s",perf[cnt]+"("+perf[cnt+1]+"-"+perf[cnt-1]+")");
+							if(old[cnt]==-1000) s+="N/A"+"->"+(1200+change[cnt]);
+							else s+=old[cnt]+"->"+(old[cnt]+change[cnt]);
+						}
 						output+=s+"\n";
 						if(pnumb<0) pnumb=-pnumb;
 					}
