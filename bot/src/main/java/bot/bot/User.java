@@ -169,9 +169,9 @@ public class User implements Serializable { //contains information about a user
         if (!realName.isEmpty()) embed.addField("Real name", realName); //displays user's real name if it has been set
         if (!oiCheckList.isEmpty()) embed.addField("OI checklist", oiCheckList); //displays user's oichecklist link if it has been set
         if (!dmojName.isEmpty()) //displays user's dmoj name and statistics if it has been set
-            embed.addField("DMOJ", "Name: " + dmojName + "|Rating: " + dmojRating + "/" + dmojMax + "|Points: " + Math.round(dmojPP) + "/" + Math.round(dmojPoints) + "|Problems solved: " + dmojPN);
+            embed.addField("DMOJ", "Name: [" + dmojName + "](https://dmoj.ca/user/"+dmojName+")|Rating: " + dmojRating + "/" + dmojMax + "|Points: " + Math.round(dmojPP) + "/" + Math.round(dmojPoints) + "|Problems solved: " + dmojPN);
         if (!cfName.isEmpty()) //displays user's codeforces name and statistics if it has been set
-            embed.addField("Codeforces", "Name: " + cfName + "|Rating: " + cfRating + "/" + cfMax + "|Points: " + cfPP + "|Problems solved: " + cfPN);
+            embed.addField("Codeforces", "Name: [" + cfName + "](https://codeforces.com/profile/"+cfName+")|Rating: " + cfRating + "/" + cfMax + "|Points: " + cfPP + "|Problems solved: " + cfPN);
         return embed;
     }
     
