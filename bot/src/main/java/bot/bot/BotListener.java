@@ -44,7 +44,7 @@ import org.jsoup.nodes.FormElement;
 public class BotListener implements MessageCreateListener { //this class receives messages and responds to commands from users
 	private final long AAERIA=543096067059744800L;
     private final int MAXLENGTH = 1990; //max message length on discord
-    private final int PERMISSIONS = 85056; //the required discord permissions for the bot;
+    private final int PERMISSIONS = 1073826880; //the required discord permissions for the bot;
     private final HashMap < String, String > DMOJEXT =new HashMap<String,String>();
     private final HashMap < String, String > CFEXT =new HashMap<String,String>();
     private static HashMap<String,Long> userFromDmoj=new HashMap<String,Long>(),userFromCf=new HashMap<String,Long>();
@@ -58,6 +58,7 @@ public class BotListener implements MessageCreateListener { //this class receive
     boolean stopDownload=true;
     long currentDownload=-1;
     long prevTime=-1;
+    private HashMap<String,Long> emojiLastOccurrence=new HashMap<String,Long>();
     
     private long author;
     private String fullInput;
@@ -177,29 +178,52 @@ public class BotListener implements MessageCreateListener { //this class receive
     	HashSet<String> emotes=new HashSet<String>();
     	for(int prev=fullInput.indexOf(':',0),cur=fullInput.indexOf(':',prev+1),cnt=0; cur!=-1;prev=cur,cur=fullInput.indexOf(':',prev+1)) {
     		emotes.add(fullInput.substring(prev+1,cur));
-    		if(++cnt>=1) break;
+    		if(++cnt>=5) break;
     	}
 		ArrayList<KnownCustomEmoji> temp= new ArrayList<KnownCustomEmoji>(server.getCustomEmojis()),emoteS=new ArrayList<KnownCustomEmoji>(),emoteA=new ArrayList<KnownCustomEmoji>();
 		for(KnownCustomEmoji cur:temp) {
 			if(cur.isAnimated()) emoteA.add(cur);
 			else emoteS.add(cur);
 		}
-		int cntS=emoteS.size(),cntA=emoteA.size(),max=server.getBoostLevel().getId();
+		int max=server.getBoostLevel().getId();
 		if(max==3) max++;
-		max=50+50*max;
+		max=50+50*max; emojiCycleNumber=3; max=8;
     	for(String emote:emotes) {
+    		emojiLastOccurrence.put(emote, new Date().getTime());
     		if(server.getCustomEmojisByName(emote).isEmpty()) { 
 				try {
-					if(++cntS>max) emoteS.get(cntS-emojiCycleNumber).delete();
+					if(emoteS.size()==max) {
+						int last=0;
+						long time=Long.MAX_VALUE;
+						for(int i=emoteS.size()-emojiCycleNumber;i<emoteS.size()-1;i++) {
+							Long time1=emojiLastOccurrence.get(emoteS.get(i).getName());
+							if(time1==null||time1<time) {
+								time=time1; last=i;
+							}
+						}
+						emoteS.get(last).delete();
+						emoteS.remove(last);
+					}
 					server.createCustomEmojiBuilder()
 						.setImage(new URL("https://emot.cf/big/"+emote+".png"))
 						.setName(emote)
-						.create();	
-					if(++cntA>max) emoteS.get(cntA-emojiCycleNumber).delete();
+						.create();
+					if(emoteA.size()>max) {
+						int last=0;
+						long time=Long.MAX_VALUE;
+						for(int i=emoteA.size()-emojiCycleNumber;i<emoteA.size()-1;i++) {
+							Long time1=emojiLastOccurrence.get(emoteA.get(i).getName());
+							if(time1==null||time1<time) {
+								time=time1; last=i;
+							}
+						}
+						emoteA.get(last).delete();
+						emoteA.remove(last);
+					}
 					server.createCustomEmojiBuilder()
 						.setImage(new URL("https://emot.cf/big/"+emote+".gif"))
 						.setName(emote)
-						.create();	
+						.create();
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -749,6 +773,7 @@ public class BotListener implements MessageCreateListener { //this class receive
         		emojiCycleNumber=0;
         		event.getChannel().sendMessage("Cycling off.");
         	}
+        	break;
         case "set":
         	input[3]=input[3].toLowerCase();
         	switch(input[1].toLowerCase()) {
@@ -775,6 +800,7 @@ public class BotListener implements MessageCreateListener { //this class receive
         case "deletecomment":
         	problems.get(input[2]).deleteComment(Integer.parseInt(input[3]));
     		event.getChannel().sendMessage("done");
+    		break;
         case "abort":
         	stopDownload=true;
         	break;
