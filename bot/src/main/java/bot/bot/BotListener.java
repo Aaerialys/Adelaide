@@ -44,7 +44,7 @@ import org.jsoup.nodes.FormElement;
 public class BotListener implements MessageCreateListener { //this class receives messages and responds to commands from users
 	private final long AAERIA=543096067059744800L;
     private final int MAXLENGTH = 1990; //max message length on discord
-    private final int PERMISSIONS = 1073826880; //the required discord permissions for the bot;
+    private final int PERMISSIONS = 1073835072; //the required discord permissions for the bot;
     private final HashMap < String, String > DMOJEXT =new HashMap<String,String>();
     private final HashMap < String, String > CFEXT =new HashMap<String,String>();
     private static HashMap<String,Long> userFromDmoj=new HashMap<String,Long>(),userFromCf=new HashMap<String,Long>();
@@ -864,7 +864,7 @@ public class BotListener implements MessageCreateListener { //this class receive
         	break;
         case "contest":
         	try {
-				ArrayList<JSONObject> temp2=(ArrayList<JSONObject>) ((JSONObject) ((JSONObject) DmojCfApi.query("https://dmoj.ca/api/v2/contest/"+input[1]).get("data")).get("object")).get("rankings");
+				ArrayList<JSONObject> temp2=(ArrayList<JSONObject>) ((JSONObject) ((JSONObject) DmojCfApi.query("https://dmoj.ca/api/v2/contest/"+input[1],"Authorization","Bearer AAA3gX2Rr8Bc55Wh3V_3UtktA218NZYRhpTRu7D31_0nJ3-m").get("data")).get("object")).get("rankings");
         		int n=temp2.size()+1,cnt=0;
 				int[] old=new int[n],vol=new int[n],perf=new int[n+1],change=new int[n+1];
 				boolean rated=false;
