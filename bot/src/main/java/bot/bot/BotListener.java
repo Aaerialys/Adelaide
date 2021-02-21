@@ -187,17 +187,18 @@ public class BotListener implements MessageCreateListener { //this class receive
 		}
 		int max=server.getBoostLevel().getId();
 		if(max==3) max++;
-		max=50+50*max; emojiCycleNumber=3; max=8;
+		max=50+50*max;
     	for(String emote:emotes) {
     		emojiLastOccurrence.put(emote, new Date().getTime());
     		if(server.getCustomEmojisByName(emote).isEmpty()) { 
 				try {
-					if(emoteS.size()==max) {
-						int last=0;
+					if(emoteS.size()>=max) {
+						int last=emoteS.size()-emojiCycleNumber;
 						long time=Long.MAX_VALUE;
 						for(int i=emoteS.size()-emojiCycleNumber;i<emoteS.size()-1;i++) {
 							Long time1=emojiLastOccurrence.get(emoteS.get(i).getName());
-							if(time1==null||time1<time) {
+							if(time1==null) time1=-1L;
+							if(time1<time) {
 								time=time1; last=i;
 							}
 						}
@@ -208,7 +209,7 @@ public class BotListener implements MessageCreateListener { //this class receive
 						.setImage(new URL("https://emot.cf/big/"+emote+".png"))
 						.setName(emote)
 						.create();
-					if(emoteA.size()>max) {
+					if(emoteA.size()>=max) {
 						int last=0;
 						long time=Long.MAX_VALUE;
 						for(int i=emoteA.size()-emojiCycleNumber;i<emoteA.size()-1;i++) {
