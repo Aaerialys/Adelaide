@@ -1,7 +1,7 @@
 # Adelaide
 A discord bot for cp.
 
-[Server link](https://cccdiscord.cf/)
+[Server link](https://discord.gg/VEWFpgPhnz)
 
 [Invite the bot](https://discord.com/oauth2/authorize?client_id=799477945215090688&scope=bot&permissions=085056)
 
