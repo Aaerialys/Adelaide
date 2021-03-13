@@ -302,7 +302,7 @@ public class BotListener implements MessageCreateListener { //this class receive
             EmbedBuilder embed = new EmbedBuilder().addField(api.getUserById(user).join().getDiscriminatedName() + "'s To Do List:", "Loading..."); //formats the output as an embed
             final long user2 = user;
             event.getChannel().sendMessage(embed).thenAccept(message -> { //allows the user to react to scroll through the list
-                EmbedScroller scroller = new EmbedScroller(message, embed, api.getUserById(user2).join().getDiscriminatedName() + "'s To Do List:", output, 10);
+                Scroller scroller = new Scroller(message, embed, api.getUserById(user2).join().getDiscriminatedName() + "'s To Do List:", output, 10);
                 message.addReactionAddListener(scroller).removeAfter(5, TimeUnit.MINUTES); //stop watching for reactions after 5 minutes
             });
         } else if (input[1].equals("merge")) {
@@ -363,7 +363,7 @@ public class BotListener implements MessageCreateListener { //this class receive
                 .addInlineField("Difficulty", Integer.toString(cur.getDifficulty()))
                 .addField("Comments", "Loading");
             event.getChannel().sendMessage(embed).thenAccept(message -> {
-                EmbedScroller scroller = new EmbedScroller(message, embed, "Comments", output, 3);
+                Scroller scroller = new Scroller(message, embed, "Comments", output, 3);
                 message.addReactionAddListener(scroller).removeAfter(5, TimeUnit.MINUTES);
             });
         }
@@ -449,7 +449,7 @@ public class BotListener implements MessageCreateListener { //this class receive
         EmbedBuilder embed = new EmbedBuilder().addField(title, "loading"); //formats the output as an embed
         final String title2 = title;
         event.getChannel().sendMessage(embed).thenAccept(message -> {
-            EmbedScroller scroller = new EmbedScroller(message, embed, title2, output, 10);
+            Scroller scroller = new Scroller(message, embed, title2, output, 10);
             message.addReactionAddListener(scroller).removeAfter(5, TimeUnit.MINUTES);
         });
 
@@ -477,7 +477,7 @@ public class BotListener implements MessageCreateListener { //this class receive
             for (JSONObject cur: subs) //add each submission to the solved list and set if it has not been added already to the set
                 if (solved.add((String) cur.get("problem"))) problems.add(cur);
             ArrayList<String> output = new ArrayList<String>();
-            for (int i = problems.size() - 1; i >= Math.max(0, problems.size() - 100); i--) { //go through the last 10 submissions
+            for (int i = problems.size() - 1; i >= 0; i--) { //go through the last 10 submissions
                 Problem info = DmojCfApi.dmojProblemInfo((String) problems.get(i).get("problem")); //get info about the problem
                 if (info != null) {
                     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
@@ -488,7 +488,7 @@ public class BotListener implements MessageCreateListener { //this class receive
             if (output.isEmpty()) output.add("No problems found"); //output if the user has no solved problems
             EmbedBuilder embed = new EmbedBuilder().addField("Recently solved problems by " + user, "loading"); //format the output as an embed
             curChannel.sendMessage(embed).thenAccept(message ->{
-            	message.addReactionAddListener(new EmbedScroller(message,embed,"Recently solved problems by " + user,output.toArray(new String[output.size()]),10)).removeAfter(5, TimeUnit.MINUTES);});
+            	message.addReactionAddListener(new Scroller(message,embed,"Recently solved problems by " + user,output.toArray(new String[output.size()]),10)).removeAfter(5, TimeUnit.MINUTES);});
             	
         } catch (Exception e) { //exit if there was a problem getting the submissions
             event.getChannel().sendMessage("Error");
@@ -865,10 +865,18 @@ public class BotListener implements MessageCreateListener { //this class receive
         	break;
         case "contest":
         	try {
+        		if(input.length<2) {
+        			event.getChannel().sendMessage(prefix+"contest [contestid] (forcerate) (showall)");
+        			break;
+        		}
 				ArrayList<JSONObject> temp2=(ArrayList<JSONObject>) ((JSONObject) ((JSONObject) DmojCfApi.query("https://dmoj.ca/api/v2/contest/"+input[1],"Authorization","Bearer AAA3gX2Rr8Bc55Wh3V_3UtktA218NZYRhpTRu7D31_0nJ3-m").get("data")).get("object")).get("rankings");
         		int n=temp2.size()+1,cnt=0;
 				int[] old=new int[n],vol=new int[n],perf=new int[n+1],change=new int[n+1];
-				boolean rated=false;
+				boolean rated=false,forcerate=false,showall=false;
+				for(int i=0;i<input.length;i++) {
+					if(input[i].equalsIgnoreCase("forcerate")) forcerate=true;
+					else if(input[i].equalsIgnoreCase("showall")) showall=true;
+				}
 				try {
 					Map<String,JSONObject> temp=(Map<String, JSONObject>) DmojCfApi.query("https://evanzhang.ca/rating/contest/"+input[1]+"/api").get("users");
 					rated=!temp.isEmpty();
@@ -902,7 +910,7 @@ public class BotListener implements MessageCreateListener { //this class receive
 					e.printStackTrace();
 					rated=false;
 				}
-				if(!rated&&input.length>2&&input[2].equals("forcerate")) {
+				if(!rated&&forcerate) {
 					rated=true;
 					cnt=1;
 					ArrayList<Integer> prevRatings=new ArrayList<Integer>();
@@ -938,13 +946,15 @@ public class BotListener implements MessageCreateListener { //this class receive
 				HashSet<String> serverNames=new HashSet<String>();
 				for(User cur:users.values()) serverNames.add(cur.getDmojName());
 				String output="\n";
+				ArrayList<String> output2=new ArrayList<String>();
 				int pnumb=0,nameLen=1;
 				for(JSONObject cur:temp2)
-					if(serverNames.contains(((String)cur.get("user")).toLowerCase()))
+					if(showall||serverNames.contains(((String)cur.get("user")).toLowerCase()))
 						nameLen=Math.max(nameLen,((String)cur.get("user")).length());
 				cnt=1;
+				int cnt2=0;
 				for(JSONObject cur:temp2) {
-					if(serverNames.contains(((String)cur.get("user")).toLowerCase())){
+					if(showall||serverNames.contains(((String)cur.get("user")).toLowerCase())){
 						String s=String.format("%-4s",cnt)+String.format("%-"+nameLen+"s",(String)cur.get("user"))+" "+String.format("%-5s",Math.round((Double)cur.get("score")));
 						for(JSONObject i:(ArrayList<JSONObject>)cur.get("solutions")) {
 							if(i==null) s+=String.format("%-4s","-");
@@ -958,20 +968,26 @@ public class BotListener implements MessageCreateListener { //this class receive
 						}
 						output+=s+"\n";
 						if(pnumb<0) pnumb=-pnumb;
+						cnt2++;
 					}
 					cnt++;
-					if(output.length()>1800) {
+					if(output.length()>1800||cnt2>=30) {
+						cnt2=0;
 						if(rated) output="\u0394    Perf            Rating"+output;
 						for(int i=0;i<pnumb;i++) output="    "+output;
 						output="Rank "+String.format("%-"+nameLen+"s","Name")+"Score"+output;
-						event.getChannel().sendMessage("```"+output+"```");
+						output2.add("```"+output+"```");
 						output="\n";
 					}
 				}
 				if(rated) output="\u0394    Perf            Rating"+output;
 				for(int i=0;i<pnumb;i++) output="    "+output;
 				output="Rank "+String.format("%-"+nameLen+"s","Name")+"Score"+output;
-				event.getChannel().sendMessage("```"+output+"```");
+				output2.add("```"+output+"```");
+	            event.getChannel().sendMessage("loading").thenAccept(message -> { //allows the user to react to scroll through the list
+	                Scroller scroller = new Scroller(message, output2.toArray(new String[output2.size()]), 1);
+	                message.addReactionAddListener(scroller).removeAfter(5, TimeUnit.MINUTES); //stop watching for reactions after 5 minutes
+	            });
 			} catch (IOException | ParseException | InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
