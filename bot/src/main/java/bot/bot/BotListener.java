@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
@@ -59,7 +60,7 @@ public class BotListener implements MessageCreateListener { //this class receive
     long currentDownload=-1;
     long prevTime=-1;
     private HashMap<String,Long> emojiLastOccurrence=new HashMap<String,Long>();
-    
+    private String olykey;
     private long author;
     private String fullInput;
     private String[] input;
@@ -79,6 +80,7 @@ public class BotListener implements MessageCreateListener { //this class receive
             o.writeObject(adminRole);
             o.writeObject(userFromDmoj);
             o.writeObject(userFromCf);
+            o.writeObject(olykey);
             o.close();
             f.close();
         } catch (IOException e) {
@@ -117,6 +119,7 @@ public class BotListener implements MessageCreateListener { //this class receive
             adminRole=(HashSet<String>)oi.readObject();
             userFromDmoj=(HashMap<String,Long>)oi.readObject();
             userFromCf=(HashMap<String,Long>)oi.readObject();
+            olykey=(String)oi.readObject();
             System.out.println("data restored");
             oi.close();
             fi.close();
@@ -805,6 +808,9 @@ public class BotListener implements MessageCreateListener { //this class receive
         case "abort":
         	stopDownload=true;
         	break;
+        case "olykey":
+        	olykey=input[1];
+        	break;
         }
         if (!users.containsKey(author)) users.put(author, new User(author)); //if the author is not in the bot's user name, add him/her
         
@@ -869,7 +875,7 @@ public class BotListener implements MessageCreateListener { //this class receive
         			event.getChannel().sendMessage(prefix+"contest [contestid] (forcerate) (showall)");
         			break;
         		}
-				ArrayList<JSONObject> temp2=(ArrayList<JSONObject>) ((JSONObject) ((JSONObject) DmojCfApi.query("https://dmoj.ca/api/v2/contest/"+input[1],"Authorization","Bearer AAA3gX2Rr8Bc55Wh3V_3UtktA218NZYRhpTRu7D31_0nJ3-m").get("data")).get("object")).get("rankings");
+				ArrayList<JSONObject> temp2=(ArrayList<JSONObject>) ((JSONObject) ((JSONObject) DmojCfApi.query("https://dmoj.ca/api/v2/contest/"+input[1],"Authorization","Bearer "+olykey).get("data")).get("object")).get("rankings");
         		int n=temp2.size()+1,cnt=0;
 				int[] old=new int[n],vol=new int[n],perf=new int[n+1],change=new int[n+1];
 				boolean rated=false,forcerate=false,showall=false;
@@ -992,6 +998,36 @@ public class BotListener implements MessageCreateListener { //this class receive
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+        	break;
+        case "postcontest":
+			try {
+				if(!event.getServer().isPresent()||event.getServer().get().getId()!=HOME) break;
+				if(input.length<2) {
+					event.getChannel().sendMessage(prefix+"postcontest [contestid]");
+					break;
+				}
+				if(users.get(author).getDmojName().isBlank()) event.getChannel().sendMessage("You need to set your dmoj handle to access post contest.");
+				ArrayList<JSONObject> temp=(ArrayList<JSONObject>) ((JSONObject) ((JSONObject) DmojCfApi.query("https://dmoj.ca/api/v2/contest/"+input[1],"Authorization","Bearer "+olykey).get("data")).get("object")).get("rankings");
+
+				for(JSONObject cur:temp) {
+					if(userFromDmoj.containsKey(((String) cur.get("user")).toLowerCase())) {
+					
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+                    sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
+                    Date d1 = sdf.parse((String) cur.get("end_time")),d2=new Date();
+                    if(d1.after(d2)) continue;
+                    api.getUserById(userFromDmoj.get(((String) cur.get("user")).toLowerCase())).thenAccept(user1->{
+                    	event.getServer().get().getRolesByName("post contest "+input[1]).get(0).addUser(user1);
+                    });
+				}
+				}
+				event.getChannel().sendMessage("Updated post contest.");
+				
+			} catch (IOException | ParseException | InterruptedException | java.text.ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			break;
         }
         //Date endTime=new Date();
         //System.out.println(endTime.getTime()-startTime.getTime());
