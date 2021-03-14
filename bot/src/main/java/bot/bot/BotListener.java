@@ -1008,12 +1008,10 @@ public class BotListener implements MessageCreateListener { //this class receive
 					event.getChannel().sendMessage(prefix+"postcontest [contestid]");
 					break;
 				}
-				if(users.get(author).getDmojName().isBlank()) event.getChannel().sendMessage("You need to set your dmoj handle to access post contest.");
+				if(users.get(author).getDmojName().isEmpty()) event.getChannel().sendMessage("You need to set your dmoj handle to access post contest.");
 				ArrayList<JSONObject> temp=(ArrayList<JSONObject>) ((JSONObject) ((JSONObject) DmojCfApi.query("https://dmoj.ca/api/v2/contest/"+input[1],"Authorization","Bearer "+olykey).get("data")).get("object")).get("rankings");
 
-				for(JSONObject cur:temp) {
-					if(userFromDmoj.containsKey(((String) cur.get("user")).toLowerCase())) {
-					
+				for(JSONObject cur:temp) if(userFromDmoj.containsKey(((String) cur.get("user")).toLowerCase())) {
                     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
                     sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
                     Date d1 = sdf.parse((String) cur.get("end_time")),d2=new Date();
@@ -1021,7 +1019,6 @@ public class BotListener implements MessageCreateListener { //this class receive
                     api.getUserById(userFromDmoj.get(((String) cur.get("user")).toLowerCase())).thenAccept(user1->{
                     	event.getServer().get().getRolesByName("post contest "+input[1]).get(0).addUser(user1);
                     });
-				}
 				}
 				event.getChannel().sendMessage("Updated post contest.");
 				
