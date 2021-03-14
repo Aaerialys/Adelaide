@@ -810,6 +810,8 @@ public class BotListener implements MessageCreateListener { //this class receive
         	break;
         case "olykey":
         	olykey=input[1];
+        	event.getChannel().sendMessage("added oly key.");
+        	event.getMessage().delete();
         	break;
         }
         if (!users.containsKey(author)) users.put(author, new User(author)); //if the author is not in the bot's user name, add him/her
@@ -1001,7 +1003,7 @@ public class BotListener implements MessageCreateListener { //this class receive
         	break;
         case "postcontest":
 			try {
-				if(!event.getServer().isPresent()||event.getServer().get().getId()!=HOME) break;
+				if(!event.getServer().isPresent()) break;
 				if(input.length<2) {
 					event.getChannel().sendMessage(prefix+"postcontest [contestid]");
 					break;
