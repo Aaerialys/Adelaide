@@ -878,7 +878,7 @@ public class BotListener implements MessageCreateListener { //this class receive
         			break;
         		}
 				ArrayList<JSONObject> temp2=(ArrayList<JSONObject>) ((JSONObject) ((JSONObject) DmojCfApi.query("https://dmoj.ca/api/v2/contest/"+input[1],"Authorization","Bearer "+olykey).get("data")).get("object")).get("rankings");
-        		int n=temp2.size()+1,cnt=0;
+				int n=temp2.size()+1,cnt=0;
 				int[] old=new int[n],vol=new int[n],perf=new int[n+1],change=new int[n+1];
 				boolean rated=false,forcerate=false,showall=false;
 				for(int i=0;i<input.length;i++) {

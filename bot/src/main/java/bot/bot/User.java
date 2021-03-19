@@ -103,7 +103,7 @@ public class User implements Serializable { //contains information about a user
             	DmojCfApi.limitDmoj();
             	URL url=new URL("https://dmoj.ca/user/"+name);
             	Document doc=Jsoup.parse(url, 20000);
-                if(!doc.text().contains(verify)) return -1;
+                if(!doc.html().contains(verify)) return -1;
             }
             //sets dmoj statistics from the information
             if(info.get("rating")!=null) dmojRating = ((Long) info.get("rating")).intValue();
