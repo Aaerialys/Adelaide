@@ -930,6 +930,7 @@ public class BotListener implements MessageCreateListener { //this class receive
 						}
 						cnt++;
 					}
+					prevRatings.set(1, 3000);
 					ArrayList<Integer> deltas=CodeforcesRatingCalculator.calculateRatingChanges(prevRatings);
 					cnt=0;
 					int prev=n-1; cnt=deltas.size()-1;

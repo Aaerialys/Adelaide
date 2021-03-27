@@ -135,7 +135,7 @@ public class User implements Serializable { //contains information about a user
             }
             name=name.toLowerCase();
             info = (JSONObject)((JSONArray) DmojCfApi.query("https://codeforces.com/api/user.info?handles=" + name).get("result")).get(0); //get info about user on codeforces
-            if(!verify.isEmpty()&&!info.get("firstName").equals(verify)) return -1;
+            if(!verify.isEmpty()&&(!info.containsKey("firstName")||!info.get("firstName").equals(verify))) return -1;
             ArrayList < JSONObject > submissions = (ArrayList < JSONObject > ) DmojCfApi.query("https://codeforces.com/api/user.status?handle=" + name).get("result"); //get all the user's submissions
             HashSet < String > problems = new HashSet < String > (); //A set of the user's solved problems
             cfPP = 0;
