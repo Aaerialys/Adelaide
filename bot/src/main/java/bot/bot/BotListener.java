@@ -711,7 +711,7 @@ public class BotListener implements MessageCreateListener { //this class receive
         this.event=event;
         fullInput=event.getMessageContent();
         
-        if(emojiCycleNumber>0) event.getServer().ifPresent(server -> {if(server.getId()==HOME) updateEmotes(server);});
+        if(emojiCycleNumber>0) event.getServer().ifPresent(server -> {updateEmotes(server);});
 
         if (!fullInput.startsWith(prefix)) return;
         prevTime=new Date().getTime();
