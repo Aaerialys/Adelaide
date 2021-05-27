@@ -27,7 +27,7 @@ class EmoteManager:
 
     def updCacheFromServer(self, server):
         for e in self.eList.values():
-            e.inServer = False
+            e.inServer = e.cycleable = False
         for e in server.emojis:
             if e.name not in self.eList:
                 path = e.name+(".gif" if e.animated else ".png")

@@ -18,7 +18,7 @@ import pickle
 import random
 
 prefix = "x!"
-DISCORD_TOKEN = 'INSERT TOKEN HERE'
+DISCORD_TOKEN = 'INSERT TOKEN'
 
 bot = commands.Bot(command_prefix=commands.when_mentioned_or(
     prefix), case_insensitive=True)
@@ -37,8 +37,9 @@ async def update():
         await ems[guild.id].update(guild)
     with open('data', 'wb') as f:
         pickle.dump([prefix, ems], f)
+    print('Updated data')
 
-asyncio.run(update())
+update.start()
 
 
 @bot.event
