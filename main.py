@@ -207,11 +207,11 @@ async def emotes(ctx):
     embed.add_field(name="Emote Count", value=len(em.eList))
     await ctx.send(embed=embed)
     output = "```" + \
-        "{:<18}{:<9}{:<6}{:<15}{:<4}\n".format(
+        "{:<18}{:<9}{:<6}{:<9}{:<4}\n".format(
             "emote", "inServer", "cycle", "lastOc", "freq")
     for e in em.eList.values():
-        output += "{:<25}{:<2}{:<2}{:<19}{:<4}\n".format(
-            e.file, e.inServer, e.cycleable, e.lastOc, e.freq)
+        output += "{:<25}{:<2}{:<2}{:<12}{:<4}\n".format(
+            e.file, e.inServer, e.cycleable, round(e.lastOc), e.freq)
         if len(output) > 1800:
             output += '```'
             await ctx.send(output)

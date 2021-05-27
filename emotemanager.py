@@ -1,5 +1,4 @@
 from emote import Emote
-import time
 import os
 import requests
 
@@ -16,6 +15,7 @@ class EmoteManager:
             os.makedirs(self.eDir)
 
     async def update(self, server):
+        self.eDir = os.getcwd()+'\\emotes\\'+str(server.id)+'\\'
         self.updCacheFromFiles()
         self.updCacheFromServer(server)
 
@@ -53,7 +53,7 @@ class EmoteManager:
                 if cnt >= self.getServerMax(server):
                     print(server.name, "is full with",
                           cnt, "emotes")
-                    await self.removeLastEmote(e.animated,server)
+                    await self.removeLastEmote(e.animated, server)
                 await server.create_custom_emoji(name=cur.name, image=open(self.eDir+cur.file, 'rb').read())
                 cur.inServer = True
                 cur.cycleable = True
@@ -66,7 +66,7 @@ class EmoteManager:
     async def removeLastEmote(self, animated, server):
         last = None
         for e in server.emojis:
-            if e.name in self.eList and self.eList[e.name].cycleable and e.animated==animated\
+            if e.name in self.eList and self.eList[e.name].cycleable and e.animated == animated\
                     and (not last or self.eList[last.name].lastOc > self.eList[e.name].lastOc):
                 last = e
         if last:
