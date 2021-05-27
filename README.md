@@ -1,16 +1,13 @@
 # Adelaide
-A discord bot for cp.
+A discord bot for emotes.
 
 [Server link](https://discord.gg/VEWFpgPhnz)
 
-[Invite the bot](https://discord.com/oauth2/authorize?client_id=799477945215090688&scope=bot&permissions=085056)
-
-[Documentation](https://docs.xadelaide.cf)
+[Invite the bot](https://discord.com/oauth2/authorize?client_id=799477945215090688&scope=bot&permissions=3758435392)
 
 Features
-- See contest results, predicted ratings, and performance
-- Download submissions
-- Search problems/get problem recommendations
-- Vote and comment on problems
-- Keep a to-do list of problems
+- Add extra emotes to a server beyond the default limit
+- Send and react animated emotes without nitro
+- Miscellaneous commands for 8ball, coin flip, etc
 
+Note: the previous bot features for cp and dmoj have been moved to https://github.com/Aaerialys/JOMD
