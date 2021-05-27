@@ -18,8 +18,7 @@ import pickle
 import random
 
 prefix = "x!"
-# os.environ.get("ADELAIDE_DISCORD_TOKEN")
-DISCORD_TOKEN = 'Nzk5NDc3OTQ1MjE1MDkwNjg4.YAEJ2w.-DO8Bp0wprZf7z4aIywEkWirb30'
+DISCORD_TOKEN = 'INSERT TOKEN HERE'
 
 bot = commands.Bot(command_prefix=commands.when_mentioned_or(
     prefix), case_insensitive=True)
