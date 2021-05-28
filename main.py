@@ -34,7 +34,8 @@ except Exception as e:
 @tasks.loop(hours=1)
 async def update():
     for guild in bot.guilds:
-        await ems[guild.id].update(guild)
+        em = ems.setdefault(guild.id, EmoteManager(guild))
+        await em.update(guild)
     with open('data', 'wb') as f:
         pickle.dump([prefix, ems], f)
     print('Updated data')
@@ -200,7 +201,18 @@ async def clearCache(ctx, *, arg):
 
 @bot.command()
 @has_permissions(manage_emojis=True)
-async def emotes(ctx):
+async def emotes(ctx,*args):
+    for arg in args:
+        if arg=="+server":
+            inServer=True
+        elif arg=="+cached":
+            inServer=False
+        elif arg=="+freq":
+            sortFreq=True
+        elif arg=="+cycle":
+            cycle=True
+        elif arg=="+animated":
+            animated=True
     em = ems[ctx.guild.id]
     embed = discord.Embed(title=ctx.guild.name+" Emotes")
     embed.add_field(name="Emote Cycle", value=em.eCycle)
@@ -284,7 +296,7 @@ async def _repeat(ctx, cnt: int, *, arg):
         await ctx.send(arg)
 
 # Declares slash commands through the client.
-slash = SlashCommand(bot, sync_commands=False)
+slash = SlashCommand(bot, sync_commands=True)
 
 
 @slash.slash(name="react", description="react to a message", guild_ids=bot.guilds, options=[
