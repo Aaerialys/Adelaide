@@ -18,7 +18,7 @@ import pickle
 import random
 
 prefix = "x!"
-DISCORD_TOKEN = 'INSERT TOKEN'
+DISCORD_TOKEN = ''
 
 bot = commands.Bot(command_prefix=commands.when_mentioned_or(
     prefix), case_insensitive=True)
@@ -178,10 +178,7 @@ async def clearServer(ctx):
 @bot.command()
 @has_permissions(manage_emojis=True)
 async def updCache(ctx):
-    em = ems[ctx.guild.id]
-    await em.update(ctx.guild)
-    with open('data', 'wb') as f:
-        pickle.dump([prefix, ems], f)
+    await update()
     await ctx.send('Updated Cache.')
 
 
@@ -201,18 +198,18 @@ async def clearCache(ctx, *, arg):
 
 @bot.command()
 @has_permissions(manage_emojis=True)
-async def emotes(ctx,*args):
+async def emotes(ctx, *args):
     for arg in args:
-        if arg=="+server":
-            inServer=True
-        elif arg=="+cached":
-            inServer=False
-        elif arg=="+freq":
-            sortFreq=True
-        elif arg=="+cycle":
-            cycle=True
-        elif arg=="+animated":
-            animated=True
+        if arg == "+server":
+            inServer = True
+        elif arg == "+cached":
+            inServer = False
+        elif arg == "+freq":
+            sortFreq = True
+        elif arg == "+cycle":
+            cycle = True
+        elif arg == "+animated":
+            animated = True
     em = ems[ctx.guild.id]
     embed = discord.Embed(title=ctx.guild.name+" Emotes")
     embed.add_field(name="Emote Cycle", value=em.eCycle)
@@ -298,8 +295,7 @@ async def _repeat(ctx, cnt: int, *, arg):
 # Declares slash commands through the client.
 slash = SlashCommand(bot, sync_commands=True)
 
-
-@slash.slash(name="react", description="react to a message", guild_ids=bot.guilds, options=[
+@slash.slash(name="react", description="react to a message",options=[
     create_option(
         name="id",
         description="Message ID",
@@ -335,6 +331,8 @@ async def react(ctx, id, emote: discord.Emoji, channel=None):
         e = discord.utils.get(bot.emojis, name=emote)
     if not e:
         e = emoji.emojize(':'+emote+':', use_aliases=True)
+        if e==':'+emote+':':
+            e=emote
     await msg.add_reaction(e)
     print('Reacted', emote)
 
