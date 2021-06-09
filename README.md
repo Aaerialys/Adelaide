@@ -3,7 +3,7 @@ A discord bot for emotes.
 
 [Server link](https://discord.gg/VEWFpgPhnz)
 
-[Invite the bot](https://discord.com/oauth2/authorize?client_id=799477945215090688&scope=bot&permissions=3758435392)
+[Invite the bot](https://discord.com/oauth2/authorize?client_id=799477945215090688&scope=bot%20applications.commands&permissions=3758435392)
 
 Features
 - Add extra emotes to a server beyond the default limit
